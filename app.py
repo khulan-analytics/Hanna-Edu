@@ -28,6 +28,57 @@ DESTINATIONS = ["United States", "Canada", "Australia", "United Kingdom", "Europ
 CONTACT_SERVICES = ["Education", "Visa Consulting", "Travel", "Relocation", "Language Courses"]
 PAGES = ["Home", "Education", "Visa Consulting", "Travel & Relocation", "Contact Us"]
 
+# =========================================================
+# LANGUAGES (English / Mongolian / Korean)
+# =========================================================
+
+LANG_NAMES = {"English": "en", "Монгол": "mn", "한국어": "ko"}
+
+NAV_LABELS = {
+    "Home": {"en": "Home", "mn": "Нүүр", "ko": "홈"},
+    "Education": {"en": "Education", "mn": "Боловсрол", "ko": "유학"},
+    "Visa Consulting": {"en": "Visa Consulting", "mn": "Визний зөвлөгөө", "ko": "비자 상담"},
+    "Travel & Relocation": {"en": "Travel & Relocation", "mn": "Аялал ба нүүдэл", "ko": "여행 및 이주"},
+    "Contact Us": {"en": "Contact Us", "mn": "Холбоо барих", "ko": "문의하기"},
+}
+
+TEXT = {
+    "hero_eyebrow": {"en": "Education · Visa · Travel · Relocation", "mn": "Боловсрол · Виз · Аялал · Нүүдэл", "ko": "교육 · 비자 · 여행 · 이주"},
+    "hero_title": {
+        "en": "Your trusted partner for studying and living abroad.",
+        "mn": "Гадаадад суралцах, амьдрахад таны итгэлтэй түнш.",
+        "ko": "해외 유학과 생활을 위한 믿을 수 있는 파트너.",
+    },
+    "hero_text": {
+        "en": "Hanna Edu guides students and families through school placement, visa preparation, travel planning and relocation, with clear, practical advice at every step.",
+        "mn": "Hanna Edu нь сургууль сонгох, визний бэлтгэл, аялал төлөвлөлт, нүүдэл суурьшилтын бүх шатанд оюутан, гэр бүлд тодорхой, практик зөвлөгөө өгч дэмжинэ.",
+        "ko": "Hanna Edu는 학교 배치, 비자 준비, 여행 계획, 해외 이주까지 모든 단계에서 명확하고 실용적인 안내로 학생과 가족을 도와드립니다.",
+    },
+    "start_inquiry": {"en": "Start Your Inquiry", "mn": "Хүсэлт илгээх", "ko": "문의 시작하기"},
+    "trust1": {"en": "Education", "mn": "Боловсрол", "ko": "교육"},
+    "trust1s": {"en": "Schools, universities &amp; ESL", "mn": "Сургууль, их сургууль, ESL", "ko": "학교, 대학교, ESL"},
+    "trust2": {"en": "Visa Guidance", "mn": "Визний зөвлөгөө", "ko": "비자 안내"},
+    "trust2s": {"en": "Documents &amp; preparation", "mn": "Бичиг баримт, бэлтгэл", "ko": "서류 및 준비"},
+    "trust3": {"en": "Travel &amp; Relocation", "mn": "Аялал ба нүүдэл", "ko": "여행 및 이주"},
+    "trust3s": {"en": "Plan and settle in", "mn": "Төлөвлөх, суурьших", "ko": "계획부터 정착까지"},
+    "trust4": {"en": "Language Courses", "mn": "Хэлний курс", "ko": "어학 과정"},
+    "trust4s": {"en": "English &amp; Korean online", "mn": "Англи, солонгос хэл онлайнаар", "ko": "영어·한국어 온라인"},
+    "cta_title": {"en": "Ready to plan your next chapter?", "mn": "Дараагийн алхмаа төлөвлөхөд бэлэн үү?", "ko": "다음 단계를 계획할 준비가 되셨나요?"},
+    "cta_text": {
+        "en": "Tell us about your goals and we will help you understand your next steps.",
+        "mn": "Зорилгоо бидэнд хэлээрэй, бид таны дараагийн алхмуудыг ойлгоход тусална.",
+        "ko": "목표를 알려주시면 다음 단계를 이해하실 수 있도록 도와드리겠습니다.",
+    },
+    "cta_button": {"en": "Request a Consultation", "mn": "Зөвлөгөө авах хүсэлт", "ko": "상담 신청"},
+}
+
+lang = "en"  # set from the language selector in the top bar
+
+
+def t(key):
+    return TEXT[key][lang]
+
+
 # Optional: paste direct image links (https://...) to show real photos on the visa country cards,
 # e.g. VISA_PHOTOS = {"Japan": "https://.../japan.jpg"}. Leave empty to use the built-in illustrated cards.
 VISA_PHOTOS = {}
@@ -101,7 +152,7 @@ def flag_img(code: str, height: int = 24) -> str:
 html(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap');
 
 :root {
   --navy: #0F1D33;
@@ -119,10 +170,10 @@ html(
 section[data-testid="stSidebar"], div[data-testid="collapsedControl"],
 div[data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-.stApp { background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--ink); }
+.stApp { background: var(--cream); font-family: 'DM Sans', 'Noto Sans KR', sans-serif; color: var(--ink); }
 .block-container { max-width: 1180px; padding-top: 1rem; padding-bottom: 0; }
 
-h1, h2, h3, h4 { font-family: 'Playfair Display', serif !important; color: var(--navy) !important; letter-spacing: -0.01em; }
+h1, h2, h3, h4 { font-family: 'Playfair Display', 'Noto Serif KR', serif !important; color: var(--navy) !important; letter-spacing: -0.01em; }
 
 /* ---------- top navigation ---------- */
 .brand { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--navy); line-height: 1; }
@@ -382,7 +433,7 @@ def cta_band(title, text):
     _, mid, _ = st.columns([1, 1, 1])
     with mid:
         st.button(
-            "Request a Consultation",
+            t("cta_button"),
             key=f"cta_{st.session_state['page']}",
             use_container_width=True,
             on_click=go_to_contact,
@@ -394,15 +445,20 @@ def cta_band(title, text):
 # TOP NAVIGATION
 # =========================================================
 
-nav_cols = st.columns([2.2, 1, 1.15, 1.5, 1.2, 1.1], gap="small", vertical_alignment="center")
+nav_cols = st.columns([1.9, 0.8, 1.1, 1.4, 1.5, 1.15, 1.05], gap="small", vertical_alignment="center")
+
+# Render the language selector first so `lang` is known before the menu labels are drawn.
+with nav_cols[6]:
+    st.selectbox("Language", list(LANG_NAMES.keys()), key="lang_name", label_visibility="collapsed")
+lang = LANG_NAMES[st.session_state.get("lang_name", "English")]
 
 with nav_cols[0]:
     html('<div class="brand">HANNA <span>EDU</span></div><div class="brand-sub">GLOBAL CONSULTANCY</div>')
 
-for col, name in zip(nav_cols[1:], PAGES):
+for col, name in zip(nav_cols[1:6], PAGES):
     with col:
         st.button(
-            name,
+            NAV_LABELS[name][lang],
             key=f"nav_{name}",
             type="primary" if st.session_state["page"] == name else "secondary",
             on_click=navigate,
@@ -423,31 +479,30 @@ if page == "Home":
     html(
         f"""{photo_css}
         <div class="hero {'photo' if HERO_PHOTO else ''}">
-          <div class="eyebrow">Education · Visa · Travel · Relocation</div>
-          <h1>Your trusted partner for studying and living abroad.</h1>
-          <p>Hanna Edu guides students and families through school placement, visa preparation,
-          travel planning and relocation, with clear, practical advice at every step.</p>
+          <div class="eyebrow">{t('hero_eyebrow')}</div>
+          <h1>{t('hero_title')}</h1>
+          <p>{t('hero_text')}</p>
         </div>"""
     )
 
     b1, b2, _ = st.columns([1.1, 1.1, 3])
     with b1:
         st.button(
-            "Start Your Inquiry",
+            t("start_inquiry"),
             key="hero_primary",
             use_container_width=True,
             on_click=go_to_contact,
             args=("United States", [], ""),
         )
     with b2:
-        st.button("Visa Consulting", key="hero_secondary", use_container_width=True, on_click=navigate, args=("Visa Consulting",))
+        st.button(NAV_LABELS["Visa Consulting"][lang], key="hero_secondary", use_container_width=True, on_click=navigate, args=("Visa Consulting",))
 
     html(
-        """<div class="trust">
-        <div><b>Education</b><small>Schools, universities &amp; ESL</small></div>
-        <div><b>Visa Guidance</b><small>Documents &amp; preparation</small></div>
-        <div><b>Travel &amp; Relocation</b><small>Plan and settle in</small></div>
-        <div><b>Language Courses</b><small>English &amp; Korean online</small></div>
+        f"""<div class="trust">
+        <div><b>{t('trust1')}</b><small>{t('trust1s')}</small></div>
+        <div><b>{t('trust2')}</b><small>{t('trust2s')}</small></div>
+        <div><b>{t('trust3')}</b><small>{t('trust3s')}</small></div>
+        <div><b>{t('trust4')}</b><small>{t('trust4s')}</small></div>
         </div>"""
     )
 
@@ -521,7 +576,7 @@ if page == "Home":
     with st.expander("How do I get started?"):
         st.write("Send us an inquiry through the Contact Us page and tell us about your plans. We will follow up with next steps.")
 
-    cta_band("Ready to plan your next chapter?", "Tell us about your goals and we will help you understand your next steps.")
+    cta_band(t("cta_title"), t("cta_text"))
 
 # =========================================================
 # EDUCATION
