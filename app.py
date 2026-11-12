@@ -32,15 +32,15 @@ PAGES = ["Home", "Education", "Visa Consulting", "Travel & Relocation", "Contact
 # e.g. VISA_PHOTOS = {"Japan": "https://.../japan.jpg"}. Leave empty to use the built-in illustrated cards.
 VISA_PHOTOS = {}
 
-# name, flag, landmark, short label, contact-form destination
+# name, flag code, short label, contact-form destination
 VISA_COUNTRIES = [
-    ("United States", "🇺🇸", "🗽", "USA", "United States"),
-    ("Canada", "🇨🇦", "🍁", "Canada", "Canada"),
-    ("Australia", "🇦🇺", "🦘", "Australia", "Australia"),
-    ("United Kingdom", "🇬🇧", "🎡", "UK", "United Kingdom"),
-    ("Schengen / Europe", "🇪🇺", "🗼", "Schengen", "Europe"),
-    ("Japan", "🇯🇵", "⛩️", "Japan", "Japan"),
-    ("South Korea", "🇰🇷", "🏯", "Korea", "South Korea"),
+    ("United States", "us", "USA", "United States"),
+    ("Canada", "ca", "Canada", "Canada"),
+    ("Australia", "au", "Australia", "Australia"),
+    ("United Kingdom", "gb", "UK", "United Kingdom"),
+    ("Schengen / Europe", "eu", "Schengen", "Europe"),
+    ("Japan", "jp", "Japan", "Japan"),
+    ("South Korea", "kr", "Korea", "South Korea"),
 ]
 
 
@@ -84,6 +84,14 @@ def flatten(markup: str) -> str:
 
 def html(markup: str):
     st.markdown(flatten(markup), unsafe_allow_html=True)
+
+
+def flag_img(code: str, height: int = 24) -> str:
+    """Real flag picture (from flagcdn.com) for a lowercase ISO code, e.g. 'us', 'gb', 'eu'."""
+    return (
+        f'<img src="https://flagcdn.com/w320/{code}.png" alt="{code.upper()} flag" '
+        f'style="height:{height}px;width:auto;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,0.3);vertical-align:middle">'
+    )
 
 
 # =========================================================
@@ -216,7 +224,7 @@ a.chip:hover { background: var(--navy); color: var(--gold-soft) !important; bord
 .vcard:hover { transform: translateY(-4px); }
 .vcard.sel { outline: 3px solid var(--gold); box-shadow: 0 14px 32px rgba(201,162,77,0.35); }
 .vcard .landmark { font-size: 46px; line-height: 1.1; }
-.vcard .vflag { font-size: 26px; margin-top: 4px; }
+.vcard .vflag { margin: 14px 0 6px; min-height: 64px; }
 .vcard h3 { color: white !important; font-size: 20px; margin: 6px 0 8px; }
 .vcard .faces { font-size: 22px; letter-spacing: 4px; background: rgba(255,255,255,0.14); border-radius: 999px; display:inline-block; padding: 4px 14px; }
 .vcard.photo::before { content:""; position:absolute; inset:0; background: linear-gradient(to top, rgba(15,29,51,0.85), rgba(15,29,51,0.25)); }
@@ -465,15 +473,18 @@ if page == "Home":
     section("DESTINATIONS", "Where would you like to go?",
             "We support applicants across popular study and travel destinations.")
     dests = [
-        ("🇺🇸", "United States", "Universities, colleges and ESL pathways."),
-        ("🇨🇦", "Canada", "Colleges, universities and study permit guidance."),
-        ("🇦🇺", "Australia", "Study programs, student visa and travel preparation."),
-        ("🇰🇷", "South Korea", "Korean language study and university pathways."),
-        ("🌍", "Europe", "Travel documentation and Schengen visa information."),
+        ("us", "United States", "Universities, colleges and ESL pathways."),
+        ("ca", "Canada", "Colleges, universities and study permit guidance."),
+        ("au", "Australia", "Study programs, student visa and travel preparation."),
+        ("gb", "United Kingdom", "Study and visitor visa guidance."),
+        ("eu", "Schengen / Europe", "Travel documentation and Schengen visa information."),
+        ("jp", "Japan", "Short-stay visa information and language study."),
+        ("kr", "South Korea", "Korean language study and university pathways."),
     ]
-    for col, (flag, name, text) in zip(st.columns(5, gap="small"), dests):
-        with col:
-            html(f'<div class="dest"><div class="flag">{flag}</div><h3>{name}</h3><p>{text}</p></div>')
+    for row in (dests[:4], dests[4:]):
+        for col, (code, name, text) in zip(st.columns(4, gap="medium"), row):
+            with col:
+                html(f'<div class="dest"><div class="flag">{flag_img(code, 48)}</div><h3>{name}</h3><p>{text}</p></div>')
 
     section("WHY HANNA EDU", "A clear, personal approach")
     w1, w2 = st.columns(2, gap="large")
@@ -646,15 +657,14 @@ elif page == "Visa Consulting":
 
     for row in (VISA_COUNTRIES[:4], VISA_COUNTRIES[4:]):
         cols = st.columns(4, gap="medium")
-        for col, (name, flag, landmark, label, _dest) in zip(cols, row):
+        for col, (name, code, label, _dest) in zip(cols, row):
             with col:
                 photo = VISA_PHOTOS.get(name)
                 style = f' style="background-image:url(\'{photo}\')"' if photo else ""
                 classes = "vcard" + (" sel" if name == selected else "") + (" photo" if photo else "")
                 html(
-                    f"""<div class="{classes}"{style}><div class="landmark">{landmark}</div>
-                    <div class="vflag">{flag}</div><h3>{label}</h3>
-                    <div class="faces">😊😄🙂</div></div>"""
+                    f"""<div class="{classes}"{style}><div class="vflag">{flag_img(code, 64)}</div>
+                    <h3>{label}</h3><div class="faces">😊😄🙂</div></div>"""
                 )
                 st.button(
                     "Selected ✓" if name == selected else "Select",
@@ -674,7 +684,7 @@ elif page == "Visa Consulting":
     items = "".join(f"<li>✓ {i}</li>" for i in visa_options[selected])
     html(
         f"""<div class="card" style="min-height:0">
-        <div class="eyebrow" style="color:#A9822F">{destination_label[1]} {selected}</div>
+        <div class="eyebrow" style="color:#A9822F">{flag_img(destination_label[1], 20)} {selected}</div>
         <h3 style="margin-top:8px">Consultation areas</h3>
         <ul class="checklist" style="list-style:none;padding:0;margin:12px 0 0">{items}</ul>
         <p style="margin-top:14px">Selected consultation: <b>{visa_type}</b> 😊</p></div>"""
@@ -688,7 +698,7 @@ elif page == "Visa Consulting":
     st.button(
         "Request Visa Consultation",
         on_click=go_to_contact,
-        args=(destination_label[4], ["Visa Consulting"], f"I am interested in {visa_type} for {selected}."),
+        args=(destination_label[3], ["Visa Consulting"], f"I am interested in {visa_type} for {selected}."),
     )
 
 # =========================================================
@@ -789,11 +799,11 @@ elif page == "Contact Us":
 
     with right:
         for flag, country, number in [
-            ("🇲🇳", "Mongolia", "99178308"),
-            ("🇺🇸", "USA", "+1 (773) 209-9479"),
-            ("🇨🇦", "Canada", "(780) 394-4377"),
+            ("mn", "Mongolia", "99178308"),
+            ("us", "USA", "+1 (773) 209-9479"),
+            ("ca", "Canada", "(780) 394-4377"),
         ]:
-            html(f'<div class="contact-card"><div class="flag">{flag}</div><b>{country}</b><span>{number}</span></div>')
+            html(f'<div class="contact-card"><div class="flag">{flag_img(flag, 34)}</div><b>{country}</b><span>{number}</span></div>')
             st.write("")
         html(
             f"""<div class="contact-card"><div class="flag">✉️</div><b>Email</b>
@@ -821,8 +831,8 @@ html(
       </div>
       <div>
         <h4>Contact</h4>
-        <ul><li>🇲🇳 Mongolia: 99178308</li><li>🇺🇸 USA: +1 (773) 209-9479</li>
-        <li>🇨🇦 Canada: (780) 394-4377</li><li><a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></li></ul>
+        <ul><li>{flag_img('mn', 14)} Mongolia: 99178308</li><li>{flag_img('us', 14)} USA: +1 (773) 209-9479</li>
+        <li>{flag_img('ca', 14)} Canada: (780) 394-4377</li><li><a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></li></ul>
       </div>
     </div>
     <div class="legal">© 2026 Hanna Edu. All rights reserved. Visa decisions are made by the relevant
