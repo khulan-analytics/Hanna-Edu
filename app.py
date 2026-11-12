@@ -1,4 +1,8 @@
+import base64
+import hashlib
+import io
 import re
+from pathlib import Path
 from urllib.parse import quote
 
 import streamlit as st
@@ -386,6 +390,87 @@ SCHOOL_TYPE_KEYS = {"University": "university", "College": "college", "Language 
 PAGES = ["home", "education", "visa", "travel", "contact"]
 
 # ---------------------------------------------------------------------------
+# Image system
+# ---------------------------------------------------------------------------
+# Put photos in an "assets" folder next to app.py. File names (jpg/png/webp):
+#   hero_home, hero_education, hero_visa, hero_travel, hero_contact
+#   country_<slug>   e.g. country_united-states, country_south-korea
+#   school_<slug>    e.g. school_university-at-buffalo
+#   service_<name>   education, visa, travel, relocation, language
+# Anything missing automatically falls back to an elegant gradient tile.
+# You can also point a key at a hosted image: IMAGE_URLS["country_canada"] = "https://..."
+ASSETS_DIR = Path(__file__).parent / "assets"
+IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
+IMAGE_URLS = {}
+
+COUNTRY_FLAGS = {
+    "United States": "🇺🇸", "Canada": "🇨🇦", "Australia": "🇦🇺",
+    "United Kingdom": "🇬🇧", "Europe": "🇪🇺", "Japan": "🇯🇵",
+    "South Korea": "🇰🇷", "Other": "🌍",
+}
+SCHOOL_EMOJI = {"University": "🎓", "College": "🏛️", "Language School": "🗣️"}
+GRADIENTS = [
+    "linear-gradient(135deg,#0f766e,#14b8a6)",
+    "linear-gradient(135deg,#1e3a8a,#3b82f6)",
+    "linear-gradient(135deg,#7c2d12,#f59e0b)",
+    "linear-gradient(135deg,#4c1d95,#a78bfa)",
+    "linear-gradient(135deg,#134e4a,#5eead4)",
+    "linear-gradient(135deg,#831843,#f472b6)",
+]
+
+
+def slugify(value):
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+@st.cache_data(show_spinner=False)
+def _file_to_data_uri(path_str, mtime):
+    """Downscale (if Pillow is installed) and embed a local image as a data URI."""
+    path = Path(path_str)
+    data, mime = path.read_bytes(), "image/" + path.suffix.lower().lstrip(".").replace("jpg", "jpeg")
+    try:
+        from PIL import Image
+        img = Image.open(io.BytesIO(data))
+        img.thumbnail((1600, 1600))
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, "JPEG", quality=82)
+        data, mime = buf.getvalue(), "image/jpeg"
+    except Exception:
+        pass
+    return f"data:{mime};base64,{base64.b64encode(data).decode()}"
+
+
+def image_source(key):
+    if key in IMAGE_URLS:
+        return IMAGE_URLS[key]
+    for ext in IMAGE_EXTS:
+        path = ASSETS_DIR / f"{key}{ext}"
+        if path.exists():
+            return _file_to_data_uri(str(path), path.stat().st_mtime)
+    return None
+
+
+def photo(key, height=180, emoji="🌍", label=""):
+    """Uniformly cropped image tile; gradient + emoji fallback when no file exists."""
+    src = image_source(key)
+    if src:
+        style, inner = f"background-image:url('{src}');", ""
+    else:
+        idx = int(hashlib.md5(key.encode()).hexdigest(), 16) % len(GRADIENTS)
+        style, inner = f"background:{GRADIENTS[idx]};", f'<span class="ph-emoji">{emoji}</span>'
+    cap = f'<div class="photo-cap">{label}</div>' if label else ""
+    return f'<div class="photo" style="height:{height}px;{style}">{inner}{cap}</div>'
+
+
+def hero_bg(key):
+    src = image_source(key) if key else None
+    if not src:
+        return ""
+    return ("background-image:linear-gradient(135deg,rgba(15,118,110,.88),rgba(17,24,39,.65)),"
+            f"url('{src}');")
+
+
+# ---------------------------------------------------------------------------
 # Session state + translation helpers
 # ---------------------------------------------------------------------------
 st.session_state.setdefault("language", "English")
@@ -442,6 +527,9 @@ def select_school(name):
 st.markdown(
     """
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    html, body, [class*="css"], .stApp {font-family:'Inter',sans-serif;}
+    #MainMenu, footer, header[data-testid="stHeader"] {visibility:hidden; height:0;}
     .block-container {padding-top: 1.5rem; max-width: 1150px;}
     .label {color:#0f766e; font-weight:700; letter-spacing:.08em; font-size:.8rem; margin-bottom:.25rem;}
     .hero {background:linear-gradient(135deg,#0f766e 0%,#115e59 100%); color:#fff;
@@ -449,7 +537,17 @@ st.markdown(
     .hero h1 {color:#fff; font-size:2.4rem; line-height:1.2; margin:.4rem 0 1rem 0;}
     .hero p {font-size:1.1rem; opacity:.95; max-width:700px;}
     .hero .label {color:#99f6e4;}
+    .hero {background-size:cover; background-position:center; box-shadow:0 10px 30px rgba(15,118,110,.25);}
     .muted {color:#6b7280;}
+    .photo {position:relative; width:100%; border-radius:14px; background-size:cover; background-position:center;
+            display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:.6rem;
+            box-shadow:0 2px 8px rgba(0,0,0,.08); transition:transform .25s ease, box-shadow .25s ease;}
+    .photo:hover {transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.15);}
+    .ph-emoji {font-size:3rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));}
+    .photo-cap {position:absolute; left:0; right:0; bottom:0; padding:.6rem .8rem; color:#fff; font-weight:700;
+                background:linear-gradient(to top,rgba(0,0,0,.65),rgba(0,0,0,0));}
+    div[data-testid="stVerticalBlockBorderWrapper"] {border-radius:16px;}
+    .stButton>button, .stLinkButton>a {border-radius:10px; font-weight:600;}
     .chip {display:inline-block; padding:.35rem .9rem; margin:.2rem .3rem .2rem 0;
            background:#ccfbf1; color:#115e59; border-radius:999px; font-weight:600;}
     </style>
@@ -465,10 +563,10 @@ def section_header(label_key, title_key, desc_key=None):
         st.markdown(f'<p class="muted">{t(desc_key)}</p>', unsafe_allow_html=True)
 
 
-def hero(head_key, sub_key, label_key=None):
+def hero(head_key, sub_key, label_key=None, bg_key=None):
     label = f'<div class="label">{t(label_key)}</div>' if label_key else ""
     st.markdown(
-        f'<div class="hero">{label}<h1>{t(head_key)}</h1><p>{t(sub_key)}</p></div>',
+        f'<div class="hero" style="{hero_bg(bg_key)}">{label}<h1>{t(head_key)}</h1><p>{t(sub_key)}</p></div>',
         unsafe_allow_html=True,
     )
 
@@ -497,7 +595,7 @@ def render_header():
 # ---------------------------------------------------------------------------
 def page_home():
     st.markdown(
-        f"""<div class="hero">
+        f"""<div class="hero" style="{hero_bg('hero_home')}">
         <div class="label">{t('hero_label')}</div>
         <h1>{t('hero_title')}</h1>
         <p>{t('hero_desc')}</p></div>""",
@@ -519,7 +617,7 @@ def page_home():
     cols = st.columns(len(services))
     for col, (icon, title, desc, target) in zip(cols, services):
         with col.container(border=True):
-            st.markdown(f"### {icon}")
+            st.markdown(photo(f"service_{title.split('_')[0]}", 120, icon), unsafe_allow_html=True)
             st.markdown(f"**{t(title)}**")
             st.caption(t(desc))
             st.button(t("view_details"), key=f"svc_{title}", on_click=go, args=(target,))
@@ -530,8 +628,13 @@ def page_home():
 
     st.write("")
     section_header("destinations", "destinations_title")
-    chips = "".join(f'<span class="chip">{destination_name(d)}</span>' for d in DESTINATIONS[:-1])
-    st.markdown(chips, unsafe_allow_html=True)
+    tiles = st.columns(4)
+    for i, d in enumerate(DESTINATIONS[:-1]):
+        with tiles[i % 4]:
+            st.markdown(
+                photo(f"country_{slugify(d)}", 160, COUNTRY_FLAGS[d], f"{COUNTRY_FLAGS[d]} {destination_name(d)}"),
+                unsafe_allow_html=True,
+            )
 
     st.write("")
     section_header("why", "why_title")
@@ -572,6 +675,10 @@ def page_education():
 
     if school:
         st.button(f"← {t('back')}", key="school_back", on_click=select_school, args=(None,))
+        st.markdown(
+            photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"]),
+            unsafe_allow_html=True,
+        )
         st.markdown(f"## {school['name']}")
         st.caption(f"{school['city']} · {destination_name(school['country'])} · {school_type_label(school['type'])}")
         st.write(pick(school["description"]))
@@ -591,7 +698,7 @@ def page_education():
         )
         return
 
-    hero("education_head", "education_sub")
+    hero("education_head", "education_sub", bg_key="hero_education")
     st.markdown(f"**{t('school_filter')}**")
     f1, f2, _ = st.columns([1, 1, 2])
     countries = ["All"] + sorted({s["country"] for s in SCHOOLS})
@@ -615,6 +722,10 @@ def page_education():
         cols = st.columns(2)
         for col, s in zip(cols, filtered[i:i + 2]):
             with col.container(border=True):
+                st.markdown(
+                    photo(f"school_{slugify(s['name'])}", 190, SCHOOL_EMOJI.get(s["type"], "🎓")),
+                    unsafe_allow_html=True,
+                )
                 st.markdown(f"### {s['name']}")
                 st.caption(f"{s['city']} · {destination_name(s['country'])} · {school_type_label(s['type'])}")
                 st.write(pick(s["description"]))
@@ -624,11 +735,16 @@ def page_education():
 
 
 def page_visa():
-    hero("visa_head", "visa_sub")
+    hero("visa_head", "visa_sub", bg_key="hero_visa")
     st.subheader(t("choose_country"))
     dest = st.selectbox(
         t("choose_country"), VISA_DESTINATIONS, format_func=destination_name,
         label_visibility="collapsed", key="visa_dest",
+    )
+    st.markdown(
+        photo(f"country_{slugify(dest)}", 220, COUNTRY_FLAGS.get(dest, "🌍"),
+              f"{COUNTRY_FLAGS.get(dest, '')} {destination_name(dest)}"),
+        unsafe_allow_html=True,
     )
     st.subheader(t("visa_type"))
     vtype = st.radio(
@@ -649,12 +765,12 @@ def page_visa():
 
 
 def page_travel():
-    hero("travel_head", "travel_sub")
+    hero("travel_head", "travel_sub", bg_key="hero_travel")
     items = [("✈️", "flight"), ("🏨", "hotel"), ("🧳", "travel_prep"), ("📦", "moving"), ("🏠", "settlement")]
     cols = st.columns(len(items))
     for col, (icon, key) in zip(cols, items):
         with col.container(border=True):
-            st.markdown(f"### {icon}")
+            st.markdown(photo(f"travel_{key}", 110, icon), unsafe_allow_html=True)
             st.markdown(f"**{t(key)}**")
 
     st.write("")
@@ -665,6 +781,11 @@ def page_travel():
         t("purpose"), TRAVEL_PURPOSES,
         format_func=lambda k: t(k) if k in TEXT else service_name("Education"),
         key="travel_purpose",
+    )
+    st.markdown(
+        photo(f"country_{slugify(dest)}", 240, COUNTRY_FLAGS.get(dest, "🌍"),
+              f"{COUNTRY_FLAGS.get(dest, '')} {destination_name(dest)}"),
+        unsafe_allow_html=True,
     )
     services = ["Relocation"] if purpose == "moving_abroad" else ["Education"] if purpose == "education" else ["Travel"]
     purpose_en = TEXT[purpose][0] if purpose in TEXT else "Education"
@@ -694,7 +815,7 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def page_contact():
-    hero("contact_head", "contact_sub")
+    hero("contact_head", "contact_sub", bg_key="hero_contact")
     st.subheader(t("send_inquiry"))
 
     with st.form("contact_form"):
