@@ -24,9 +24,24 @@ HERO_PHOTO = None
 CONTACT_EMAIL = "mongolianhannaedu@gmail.com"
 WEBSITE = "https://www.hanna-edu.com/"
 
-DESTINATIONS = ["United States", "Canada", "Australia", "South Korea", "Europe", "Other"]
+DESTINATIONS = ["United States", "Canada", "Australia", "United Kingdom", "Europe", "Japan", "South Korea", "Other"]
 CONTACT_SERVICES = ["Education", "Visa Consulting", "Travel", "Relocation", "Language Courses"]
 PAGES = ["Home", "Education", "Visa Consulting", "Travel & Relocation", "Contact Us"]
+
+# Optional: paste direct image links (https://...) to show real photos on the visa country cards,
+# e.g. VISA_PHOTOS = {"Japan": "https://.../japan.jpg"}. Leave empty to use the built-in illustrated cards.
+VISA_PHOTOS = {}
+
+# name, flag, landmark, short label, contact-form destination
+VISA_COUNTRIES = [
+    ("United States", "🇺🇸", "🗽", "USA", "United States"),
+    ("Canada", "🇨🇦", "🍁", "Canada", "Canada"),
+    ("Australia", "🇦🇺", "🦘", "Australia", "Australia"),
+    ("United Kingdom", "🇬🇧", "🎡", "UK", "United Kingdom"),
+    ("Schengen / Europe", "🇪🇺", "🗼", "Schengen", "Europe"),
+    ("Japan", "🇯🇵", "⛩️", "Japan", "Japan"),
+    ("South Korea", "🇰🇷", "🏯", "Korea", "South Korea"),
+]
 
 
 # Schools we work with. "url" opens the school's official website.
@@ -194,6 +209,23 @@ a.card-link:hover .more { color: var(--navy); }
 a.chip { display:inline-block; text-decoration:none !important; background:white; color:var(--navy) !important; border:1px solid var(--line);
   border-radius:999px; padding:9px 18px; margin:0 10px 10px 0; font-weight:600; font-size:14px; transition: all .2s ease; }
 a.chip:hover { background: var(--navy); color: var(--gold-soft) !important; border-color: var(--navy); }
+
+.vcard { position:relative; overflow:hidden; border-radius:18px; padding:22px 18px 18px; min-height:210px; color:white; text-align:center;
+  background: radial-gradient(circle at 80% 15%, rgba(201,162,77,0.35), transparent 50%), linear-gradient(160deg, var(--navy-2), var(--navy));
+  background-size: cover; background-position: center; border-bottom: 3px solid var(--gold); transition: transform .2s ease, box-shadow .2s ease; margin-bottom: 8px; }
+.vcard:hover { transform: translateY(-4px); }
+.vcard.sel { outline: 3px solid var(--gold); box-shadow: 0 14px 32px rgba(201,162,77,0.35); }
+.vcard .landmark { font-size: 46px; line-height: 1.1; }
+.vcard .vflag { font-size: 26px; margin-top: 4px; }
+.vcard h3 { color: white !important; font-size: 20px; margin: 6px 0 8px; }
+.vcard .faces { font-size: 22px; letter-spacing: 4px; background: rgba(255,255,255,0.14); border-radius: 999px; display:inline-block; padding: 4px 14px; }
+.vcard.photo::before { content:""; position:absolute; inset:0; background: linear-gradient(to top, rgba(15,29,51,0.85), rgba(15,29,51,0.25)); }
+.vcard > * { position: relative; z-index: 1; }
+.happy-strip { background: linear-gradient(90deg, #FBF6E8, #F3EBD6); border:1px solid var(--line); border-radius:16px; padding:18px 26px; margin: 4px 0 8px;
+  display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+.happy-strip .faces-big { font-size: 34px; letter-spacing: 6px; }
+.happy-strip b { color: var(--navy); font-size: 17px; font-family:'Playfair Display',serif; }
+.happy-strip span.sub { display:block; color: var(--muted); font-size: 13.5px; margin-top: 2px; }
 .dest {
   border-radius: 16px; padding: 28px 22px; min-height: 190px; color: white; margin-bottom: 16px;
   background: linear-gradient(160deg, var(--navy-2), var(--navy)); border-bottom: 3px solid var(--gold);
@@ -276,6 +308,10 @@ st.session_state.setdefault("page", "Home")
 def navigate(page_name):
     st.session_state["page"] = page_name
     st.session_state["school"] = None
+
+
+def set_visa_country(name):
+    st.session_state["visa_country"] = name
 
 
 def select_school(school_id):
@@ -585,33 +621,63 @@ elif page == "Education":
 
 elif page == "Visa Consulting":
     page_head("VISA CONSULTING", "Your visa journey starts here.",
-              "Get guidance on documentation, application preparation and destination-specific requirements.")
+              "We consult on visas for the USA, Canada, Australia, the UK, Schengen countries, Japan and Korea.")
+
+    html(
+        """<div class="happy-strip"><div><b>Travel and study with confidence</b>
+        <span class="sub">Clear guidance, organized documents and a team that helps you every step of the way.</span></div>
+        <div class="faces-big">😊 ✈️ 😄 🛂 😁 🌍 😊</div></div>"""
+    )
+
+    section("COUNTRIES WE CONSULT ON", "Select your destination")
 
     visa_options = {
         "United States": ["Visitor visa guidance", "Student visa guidance", "Document preparation", "Application guidance"],
         "Canada": ["Visitor visa guidance", "Study permit guidance", "Document preparation", "Application guidance"],
         "Australia": ["Visitor visa guidance", "Student visa guidance", "Document preparation", "Application guidance"],
-        "South Korea": ["Visa information", "Study-related guidance", "Document preparation"],
+        "United Kingdom": ["Visitor visa guidance", "Student visa guidance", "Document preparation", "Application guidance"],
         "Schengen / Europe": ["Tourist visa information", "Travel documentation", "Application preparation"],
-        "Other": ["General visa consultation", "Document preparation"],
+        "Japan": ["Short-stay visa information", "Study and language school guidance", "Document preparation"],
+        "South Korea": ["Visa information", "Study and language course guidance", "Document preparation"],
     }
 
-    c1, c2 = st.columns(2, gap="large")
-    with c1:
-        destination = st.selectbox("Which country are you interested in?", list(visa_options.keys()))
-    with c2:
-        visa_type = st.selectbox(
-            "What type of consultation do you need?",
-            ["Visitor / Tourist Visa", "Student Visa", "Document Preparation", "Visa Category Change", "General Consultation", "Not Sure Yet"],
-        )
+    st.session_state.setdefault("visa_country", "United States")
+    selected = st.session_state["visa_country"]
 
-    items = "".join(f"<li>✓ {i}</li>" for i in visa_options[destination])
+    for row in (VISA_COUNTRIES[:4], VISA_COUNTRIES[4:]):
+        cols = st.columns(4, gap="medium")
+        for col, (name, flag, landmark, label, _dest) in zip(cols, row):
+            with col:
+                photo = VISA_PHOTOS.get(name)
+                style = f' style="background-image:url(\'{photo}\')"' if photo else ""
+                classes = "vcard" + (" sel" if name == selected else "") + (" photo" if photo else "")
+                html(
+                    f"""<div class="{classes}"{style}><div class="landmark">{landmark}</div>
+                    <div class="vflag">{flag}</div><h3>{label}</h3>
+                    <div class="faces">😊😄🙂</div></div>"""
+                )
+                st.button(
+                    "Selected ✓" if name == selected else "Select",
+                    key=f"vc_{label}",
+                    use_container_width=True,
+                    on_click=set_visa_country,
+                    args=(name,),
+                )
+        st.write("")
+
+    destination_label = next(v for v in VISA_COUNTRIES if v[0] == selected)
+    visa_type = st.selectbox(
+        "What type of consultation do you need?",
+        ["Visitor / Tourist Visa", "Student Visa", "Document Preparation", "Visa Category Change", "General Consultation", "Not Sure Yet"],
+    )
+
+    items = "".join(f"<li>✓ {i}</li>" for i in visa_options[selected])
     html(
         f"""<div class="card" style="min-height:0">
-        <div class="eyebrow" style="color:#A9822F">{destination}</div>
+        <div class="eyebrow" style="color:#A9822F">{destination_label[1]} {selected}</div>
         <h3 style="margin-top:8px">Consultation areas</h3>
         <ul class="checklist" style="list-style:none;padding:0;margin:12px 0 0">{items}</ul>
-        <p style="margin-top:14px">Selected consultation: <b>{visa_type}</b></p></div>"""
+        <p style="margin-top:14px">Selected consultation: <b>{visa_type}</b> 😊</p></div>"""
     )
 
     html(
@@ -622,7 +688,7 @@ elif page == "Visa Consulting":
     st.button(
         "Request Visa Consultation",
         on_click=go_to_contact,
-        args=(normalize_destination(destination), ["Visa Consulting"], f"I am interested in {visa_type} for {destination}."),
+        args=(destination_label[4], ["Visa Consulting"], f"I am interested in {visa_type} for {selected}."),
     )
 
 # =========================================================
