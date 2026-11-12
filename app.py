@@ -73,17 +73,32 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif !important; color: var(-
 .brand span { color: var(--gold); }
 .brand-sub { font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-top: 4px; font-weight: 600; }
 
-[class*="st-key-nav_"] button {
-  background: transparent !important; color: var(--navy) !important; border: none !important;
-  border-bottom: 2px solid transparent !important; border-radius: 0 !important;
-  font-weight: 600; font-size: 14px; padding: 0.4rem 0.2rem; box-shadow: none !important;
+/* Menu buttons: inactive = white pill with navy text, active = navy pill with gold text.
+   Two selector sets so it works on any Streamlit version or theme. */
+[class*="st-key-nav_"] button,
+div[data-testid="stHorizontalBlock"]:has(.brand) button {
+  background: #FFFFFF !important; color: #0F1D33 !important; border: 1px solid #D9D3C3 !important;
+  border-radius: 999px !important; font-weight: 600; padding: 0.45rem 0.6rem; box-shadow: none !important;
 }
-[class*="st-key-nav_"] button p { color: inherit !important; font-size: 14px; }
-[class*="st-key-nav_"] button:hover { color: var(--gold) !important; }
+[class*="st-key-nav_"] button *,
+div[data-testid="stHorizontalBlock"]:has(.brand) button * { color: #0F1D33 !important; font-size: 14px; }
+[class*="st-key-nav_"] button:hover,
+div[data-testid="stHorizontalBlock"]:has(.brand) button:hover {
+  background: #F3EBD6 !important; border-color: #C9A24D !important;
+}
 [class*="st-key-nav_"] button[kind="primary"],
-[class*="st-key-nav_"] button[data-testid="stBaseButton-primary"] {
-  border-bottom: 2px solid var(--gold) !important; color: var(--navy) !important;
+[class*="st-key-nav_"] button[data-testid="stBaseButton-primary"],
+div[data-testid="stHorizontalBlock"]:has(.brand) button[kind="primary"],
+div[data-testid="stHorizontalBlock"]:has(.brand) button[data-testid="stBaseButton-primary"] {
+  background: #0F1D33 !important; border-color: #0F1D33 !important;
 }
+[class*="st-key-nav_"] button[kind="primary"] *,
+[class*="st-key-nav_"] button[data-testid="stBaseButton-primary"] *,
+div[data-testid="stHorizontalBlock"]:has(.brand) button[kind="primary"] *,
+div[data-testid="stHorizontalBlock"]:has(.brand) button[data-testid="stBaseButton-primary"] * {
+  color: #E9D7A8 !important;
+}
+.stApp { color-scheme: light; }
 
 /* ---------- hero ---------- */
 .hero {
