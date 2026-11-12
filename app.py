@@ -1,6 +1,7 @@
+import re
+from urllib.parse import quote
 
 import streamlit as st
-from urllib.parse import quote
 
 st.set_page_config(
     page_title="Hanna Edu",
@@ -9,12 +10,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-LANGUAGES = {
-    "English": "en",
-    "Монгол": "mn",
-    "한국어": "ko",
-}
-
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+LANGUAGES = ["English", "Монгол", "한국어"]          # position = tuple index in TEXT
 CONTACT_EMAIL = "mongolianhannaedu@gmail.com"
 WEBSITE = "https://www.hanna-edu.com/"
 
@@ -221,8 +220,8 @@ TEXT = {
     "interested": ("Services You Are Interested In", "Сонирхож буй үйлчилгээ", "관심 있는 서비스"),
     "message": ("Tell us about your plans", "Төлөвлөгөөнийхөө талаар бичнэ үү", "계획을 알려주세요"),
     "message_hint": ("Tell us about your education, visa or travel plans...",
-                      "Боловсрол, виз эсвэл аяллын төлөвлөгөөнийхөө талаар бичнэ үү...",
-                      "유학, 비자 또는 여행 계획을 알려주세요..."),
+                     "Боловсрол, виз эсвэл аяллын төлөвлөгөөнийхөө талаар бичнэ үү...",
+                     "유학, 비자 또는 여행 계획을 알려주세요..."),
     "submit": ("Prepare My Inquiry", "Хүсэлтээ бэлтгэх", "문의 내용 준비하기"),
     "required_error": ("Please enter your name and email and select at least one service.",
                        "Овог нэр, и-мэйл хаягаа оруулж, дор хаяж нэг үйлчилгээ сонгоно уу.",
@@ -244,9 +243,6 @@ TEXT = {
               "© 2026 Hanna Edu. 모든 권리 보유. 비자 결정은 관계 당국에서 내립니다."),
 }
 
-def t(key):
-    return TEXT.get(key, (key, key, key))[LANGUAGES[st.session_state["language"]]]
-
 # School names remain official. Descriptions and program labels are translated.
 SCHOOLS = [
     {
@@ -258,7 +254,7 @@ SCHOOLS = [
         "description": (
             "A public research university in Buffalo, New York, part of the State University of New York (SUNY) system.",
             "Нью-Йорк мужийн Буффало хотод байрлах, Нью-Йорк мужийн их сургуулийн (SUNY) системд багтдаг улсын судалгааны их сургууль.",
-            "뉴욕주 버펄로에 위치한 뉴욕주립대학교(SUNY) 소속 공립 연구 중심 대학교입니다."
+            "뉴욕주 버펄로에 위치한 뉴욕주립대학교(SUNY) 소속 공립 연구 중심 대학교입니다.",
         ),
         "programs": ("Undergraduate programs · Graduate programs",
                      "Бакалавр · Магистрын хөтөлбөрүүд",
@@ -273,7 +269,7 @@ SCHOOLS = [
         "description": (
             "A public university system in the state of Hawaii, offering a wide range of academic programs.",
             "Хавай мужийн олон төрлийн сургалтын хөтөлбөр санал болгодог улсын их сургуулийн систем.",
-            "다양한 학업 프로그램을 제공하는 하와이주의 공립 대학교 시스템입니다."
+            "다양한 학업 프로그램을 제공하는 하와이주의 공립 대학교 시스템입니다.",
         ),
         "programs": ("Undergraduate programs · Graduate programs",
                      "Бакалавр · Магистрын хөтөлбөрүүд",
@@ -288,7 +284,7 @@ SCHOOLS = [
         "description": (
             "A private career college in downtown Chicago with career-focused programs.",
             "Чикаго хотын төвд байрлах, ажил мэргэжилд чиглэсэн хөтөлбөртэй хувийн коллеж.",
-            "시카고 도심에 위치한 취업 중심 프로그램을 제공하는 사립 직업 교육 컬리지입니다."
+            "시카고 도심에 위치한 취업 중심 프로그램을 제공하는 사립 직업 교육 컬리지입니다.",
         ),
         "programs": ("Allied Health · Business · Information Technology · ESL",
                      "Эрүүл мэнд · Бизнес · Мэдээллийн технологи · ESL",
@@ -303,7 +299,7 @@ SCHOOLS = [
         "description": (
             "An English language school in Honolulu, Hawaii, founded in 1969.",
             "1969 онд байгуулагдсан, Хавай мужийн Хонолулу хотын англи хэлний сургууль.",
-            "1969년에 설립된 하와이주 호놀룰루의 영어 어학원입니다."
+            "1969년에 설립된 하와이주 호놀룰루의 영어 어학원입니다.",
         ),
         "programs": ("English language programs · ESL preparation",
                      "Англи хэлний хөтөлбөр · ESL бэлтгэл",
@@ -318,7 +314,7 @@ SCHOOLS = [
         "description": (
             "The ESL school of Bay Atlantic University in Washington, D.C.",
             "Вашингтон хотод байрлах Bay Atlantic University-ийн англи хэлний сургууль.",
-            "워싱턴 D.C.에 위치한 Bay Atlantic University의 ESL 학교입니다."
+            "워싱턴 D.C.에 위치한 Bay Atlantic University의 ESL 학교입니다.",
         ),
         "programs": ("English language programs · Test preparation",
                      "Англи хэлний хөтөлбөр · Шалгалтын бэлтгэл",
@@ -333,7 +329,7 @@ SCHOOLS = [
         "description": (
             "A public college in Ontario, Canada, offering career-focused education.",
             "Канадын Онтарио мужид байрлах, ажил мэргэжилд чиглэсэн улсын коллеж.",
-            "캐나다 온타리오주에 위치한 취업 중심 교육을 제공하는 공립 컬리지입니다."
+            "캐나다 온타리오주에 위치한 취업 중심 교육을 제공하는 공립 컬리지입니다.",
         ),
         "programs": ("Diploma programs · Certificate programs · Applied degrees",
                      "Диплом · Сертификат · Хэрэглээний бакалаврын хөтөлбөр",
@@ -348,7 +344,7 @@ SCHOOLS = [
         "description": (
             "A private Christian college in Whitby, Ontario.",
             "Канадын Онтарио мужийн Уитби хотод байрлах хувийн христийн коллеж.",
-            "온타리오주 휘트비에 위치한 사립 기독교 컬리지입니다."
+            "온타리오주 휘트비에 위치한 사립 기독교 컬리지입니다.",
         ),
         "programs": ("Ministry · Sacred Music · Christian Counselling · Religious Education",
                      "Шашны үйлчлэл · Шашны хөгжим · Христийн зөвлөгөө · Шашны боловсрол",
@@ -358,7 +354,7 @@ SCHOOLS = [
 
 DESTINATIONS = [
     "United States", "Canada", "Australia", "United Kingdom",
-    "Europe", "Japan", "South Korea", "Other"
+    "Europe", "Japan", "South Korea", "Other",
 ]
 
 DESTINATION_TRANSLATIONS = {
@@ -372,10 +368,7 @@ DESTINATION_TRANSLATIONS = {
     "Other": ("Other", "Бусад", "기타"),
 }
 
-SERVICE_OPTIONS = [
-    "Education", "Visa Consulting", "Travel",
-    "Relocation", "Language Courses"
-]
+SERVICE_OPTIONS = ["Education", "Visa Consulting", "Travel", "Relocation", "Language Courses"]
 
 SERVICE_TRANSLATIONS = {
     "Education": ("Education", "Боловсрол", "교육"),
@@ -385,8 +378,381 @@ SERVICE_TRANSLATIONS = {
     "Language Courses": ("Language Courses", "Хэлний сургалт", "어학 과정"),
 }
 
+# Internal keys -> translation keys
+VISA_DESTINATIONS = ["United States", "Canada", "Australia", "United Kingdom", "Europe", "Japan", "South Korea"]
+VISA_TYPES = ["visitor_visa", "student_visa", "documents", "general", "not_sure"]
+TRAVEL_PURPOSES = ["tourism", "family", "moving_abroad", "education"]
+SCHOOL_TYPE_KEYS = {"University": "university", "College": "college", "Language School": "language_school"}
+PAGES = ["home", "education", "visa", "travel", "contact"]
+
+# ---------------------------------------------------------------------------
+# Session state + translation helpers
+# ---------------------------------------------------------------------------
+st.session_state.setdefault("language", "English")
+st.session_state.setdefault("page", "home")
+st.session_state.setdefault("selected_school", None)
+st.session_state.setdefault("c_dest", "United States")
+st.session_state.setdefault("c_services", [])
+st.session_state.setdefault("c_message", "")
+st.session_state.setdefault("mailto", None)
+
+
+def lang_index():
+    lang = st.session_state.get("language", "English")
+    return LANGUAGES.index(lang) if lang in LANGUAGES else 0
+
+
+def pick(options, fallback=""):
+    """Pick the current-language entry from an (en, mn, ko) tuple."""
+    return options[lang_index()] if options else fallback
+
+
+def t(key):
+    return pick(TEXT.get(key, (key, key, key)))
+
+
 def destination_name(value):
-    return DESTINATION_TRANSLATIONS.get(value, (value, value, value))[LANGUAGES[st.session_state["language"]]]
+    return pick(DESTINATION_TRANSLATIONS.get(value, (value, value, value)))
+
 
 def service_name(value):
-    return SERVICE_TRANSLATIONS.get(value, (value, value, value))[LANGUAGES[st.session_state["language"]]]
+    return pick(SERVICE_TRANSLATIONS.get(value, (value, value, value)))
+
+
+def go(page, **prefill):
+    """Button callback: switch page and optionally prefill the contact form."""
+    st.session_state["page"] = page
+    st.session_state["selected_school"] = None
+    if "dest" in prefill:
+        st.session_state["c_dest"] = prefill["dest"]
+    if "services" in prefill:
+        st.session_state["c_services"] = prefill["services"]
+    if "message" in prefill:
+        st.session_state["c_message"] = prefill["message"]
+    st.session_state["mailto"] = None
+
+
+def select_school(name):
+    st.session_state["selected_school"] = name
+
+
+# ---------------------------------------------------------------------------
+# Styling
+# ---------------------------------------------------------------------------
+st.markdown(
+    """
+    <style>
+    .block-container {padding-top: 1.5rem; max-width: 1150px;}
+    .label {color:#0f766e; font-weight:700; letter-spacing:.08em; font-size:.8rem; margin-bottom:.25rem;}
+    .hero {background:linear-gradient(135deg,#0f766e 0%,#115e59 100%); color:#fff;
+           padding:3rem 2rem; border-radius:20px; margin-bottom:1.5rem;}
+    .hero h1 {color:#fff; font-size:2.4rem; line-height:1.2; margin:.4rem 0 1rem 0;}
+    .hero p {font-size:1.1rem; opacity:.95; max-width:700px;}
+    .hero .label {color:#99f6e4;}
+    .muted {color:#6b7280;}
+    .chip {display:inline-block; padding:.35rem .9rem; margin:.2rem .3rem .2rem 0;
+           background:#ccfbf1; color:#115e59; border-radius:999px; font-weight:600;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+def section_header(label_key, title_key, desc_key=None):
+    st.markdown(f'<div class="label">{t(label_key)}</div>', unsafe_allow_html=True)
+    st.subheader(t(title_key))
+    if desc_key:
+        st.markdown(f'<p class="muted">{t(desc_key)}</p>', unsafe_allow_html=True)
+
+
+def hero(head_key, sub_key, label_key=None):
+    label = f'<div class="label">{t(label_key)}</div>' if label_key else ""
+    st.markdown(
+        f'<div class="hero">{label}<h1>{t(head_key)}</h1><p>{t(sub_key)}</p></div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Header / navigation
+# ---------------------------------------------------------------------------
+def render_header():
+    cols = st.columns([1.3, 0.8, 1, 1.3, 1.3, 1.1, 1.1])
+    cols[0].markdown("### 🌍 Hanna Edu")
+    for col, page in zip(cols[1:6], PAGES):
+        col.button(
+            t(page),
+            key=f"nav_{page}",
+            on_click=go,
+            args=(page,),
+            use_container_width=True,
+            type="primary" if st.session_state["page"] == page else "secondary",
+        )
+    cols[6].selectbox(t("language"), LANGUAGES, key="language", label_visibility="collapsed")
+    st.divider()
+
+
+# ---------------------------------------------------------------------------
+# Pages
+# ---------------------------------------------------------------------------
+def page_home():
+    st.markdown(
+        f"""<div class="hero">
+        <div class="label">{t('hero_label')}</div>
+        <h1>{t('hero_title')}</h1>
+        <p>{t('hero_desc')}</p></div>""",
+        unsafe_allow_html=True,
+    )
+    c1, c2, _ = st.columns([1, 1, 3])
+    c1.button(t("start"), key="home_start", on_click=go, args=("contact",), type="primary")
+    c2.button(t("consult"), key="home_consult", on_click=go, args=("contact",))
+
+    st.write("")
+    section_header("what_we_do", "services_title", "services_desc")
+    services = [
+        ("🎓", "education_service", "education_desc", "education"),
+        ("🛂", "visa_service", "visa_desc", "visa"),
+        ("✈️", "travel_service", "travel_desc", "travel"),
+        ("🏠", "relocation_service", "relocation_desc", "travel"),
+        ("🗣️", "language_service", "language_desc", "contact"),
+    ]
+    cols = st.columns(len(services))
+    for col, (icon, title, desc, target) in zip(cols, services):
+        with col.container(border=True):
+            st.markdown(f"### {icon}")
+            st.markdown(f"**{t(title)}**")
+            st.caption(t(desc))
+            st.button(t("view_details"), key=f"svc_{title}", on_click=go, args=(target,))
+
+    st.write("")
+    section_header("partners", "partners_title", "partners_desc")
+    st.button(t("education"), key="home_partners", on_click=go, args=("education",))
+
+    st.write("")
+    section_header("destinations", "destinations_title")
+    chips = "".join(f'<span class="chip">{destination_name(d)}</span>' for d in DESTINATIONS[:-1])
+    st.markdown(chips, unsafe_allow_html=True)
+
+    st.write("")
+    section_header("why", "why_title")
+    cols = st.columns(3)
+    for col, n in zip(cols, (1, 2, 3)):
+        with col.container(border=True):
+            st.markdown(f"**{t(f'why{n}')}**")
+            st.caption(t(f"why{n}_desc"))
+
+    st.write("")
+    st.markdown(f'<div class="label">{t("how")}</div>', unsafe_allow_html=True)
+    cols = st.columns(4)
+    for col, n in zip(cols, (1, 2, 3, 4)):
+        with col.container(border=True):
+            st.markdown(f"**{n}. {t(f'step{n}')}**")
+            st.caption(t(f"step{n}_desc"))
+
+    st.write("")
+    section_header("faq", "faq_title")
+    for n in (1, 2, 3, 4):
+        with st.expander(t(f"faq_q{n}")):
+            st.write(t(f"faq_a{n}"))
+
+    st.write("")
+    with st.container(border=True):
+        st.subheader(t("cta_title"))
+        st.write(t("cta_desc"))
+        st.button(t("start"), key="home_cta", on_click=go, args=("contact",), type="primary")
+
+
+def school_type_label(value):
+    return t(SCHOOL_TYPE_KEYS.get(value, "all"))
+
+
+def page_education():
+    selected = st.session_state.get("selected_school")
+    school = next((s for s in SCHOOLS if s["name"] == selected), None)
+
+    if school:
+        st.button(f"← {t('back')}", key="school_back", on_click=select_school, args=(None,))
+        st.markdown(f"## {school['name']}")
+        st.caption(f"{school['city']} · {destination_name(school['country'])} · {school_type_label(school['type'])}")
+        st.write(pick(school["description"]))
+        st.markdown(f"**{t('programs')}**")
+        st.write(pick(school["programs"]))
+        st.info(t("school_note"))
+        c1, c2, _ = st.columns([1.3, 1.3, 3])
+        c1.link_button(t("visit_school"), school["url"])
+        c2.button(
+            t("consult"), key="school_consult", on_click=go, args=("contact",),
+            kwargs={
+                "dest": school["country"],
+                "services": ["Education"],
+                "message": school["name"],
+            },
+            type="primary",
+        )
+        return
+
+    hero("education_head", "education_sub")
+    st.markdown(f"**{t('school_filter')}**")
+    f1, f2, _ = st.columns([1, 1, 2])
+    countries = ["All"] + sorted({s["country"] for s in SCHOOLS})
+    types = ["All"] + list(SCHOOL_TYPE_KEYS)
+    country = f1.selectbox(
+        t("country"), countries,
+        format_func=lambda v: t("all") if v == "All" else destination_name(v),
+    )
+    stype = f2.selectbox(
+        t("school_type"), types,
+        format_func=lambda v: t("all") if v == "All" else school_type_label(v),
+    )
+
+    filtered = [
+        s for s in SCHOOLS
+        if (country == "All" or s["country"] == country)
+        and (stype == "All" or s["type"] == stype)
+    ]
+
+    for i in range(0, len(filtered), 2):
+        cols = st.columns(2)
+        for col, s in zip(cols, filtered[i:i + 2]):
+            with col.container(border=True):
+                st.markdown(f"### {s['name']}")
+                st.caption(f"{s['city']} · {destination_name(s['country'])} · {school_type_label(s['type'])}")
+                st.write(pick(s["description"]))
+                st.caption(f"**{t('programs')}:** {pick(s['programs'])}")
+                st.button(t("view_details"), key=f"school_{s['name']}", on_click=select_school, args=(s["name"],))
+    st.caption(t("school_note"))
+
+
+def page_visa():
+    hero("visa_head", "visa_sub")
+    st.subheader(t("choose_country"))
+    dest = st.selectbox(
+        t("choose_country"), VISA_DESTINATIONS, format_func=destination_name,
+        label_visibility="collapsed", key="visa_dest",
+    )
+    st.subheader(t("visa_type"))
+    vtype = st.radio(
+        t("visa_type"), VISA_TYPES, format_func=t,
+        label_visibility="collapsed", key="visa_type_choice",
+    )
+    st.warning(t("visa_warning"))
+    # Message is stored in English so the inquiry email is readable by the team.
+    st.button(
+        t("request_visa"), key="visa_request", on_click=go, args=("contact",),
+        kwargs={
+            "dest": dest,
+            "services": ["Visa Consulting"],
+            "message": f"Visa consultation: {TEXT[vtype][0]}",
+        },
+        type="primary",
+    )
+
+
+def page_travel():
+    hero("travel_head", "travel_sub")
+    items = [("✈️", "flight"), ("🏨", "hotel"), ("🧳", "travel_prep"), ("📦", "moving"), ("🏠", "settlement")]
+    cols = st.columns(len(items))
+    for col, (icon, key) in zip(cols, items):
+        with col.container(border=True):
+            st.markdown(f"### {icon}")
+            st.markdown(f"**{t(key)}**")
+
+    st.write("")
+    st.subheader(t("travel_destination"))
+    c1, c2 = st.columns(2)
+    dest = c1.selectbox(t("destination"), DESTINATIONS, format_func=destination_name, key="travel_dest")
+    purpose = c2.selectbox(
+        t("purpose"), TRAVEL_PURPOSES,
+        format_func=lambda k: t(k) if k in TEXT else service_name("Education"),
+        key="travel_purpose",
+    )
+    services = ["Relocation"] if purpose == "moving_abroad" else ["Education"] if purpose == "education" else ["Travel"]
+    purpose_en = TEXT[purpose][0] if purpose in TEXT else "Education"
+    st.button(
+        t("request_travel"), key="travel_request", on_click=go, args=("contact",),
+        kwargs={"dest": dest, "services": services, "message": f"Purpose: {purpose_en}"},
+        type="primary",
+    )
+
+
+def build_mailto(name, email, phone, dest, services, message):
+    subject = f"Hanna Edu Inquiry - {name}"
+    body = "\n".join([
+        f"Name: {name}",
+        f"Email: {email}",
+        f"Phone: {phone or '-'}",
+        f"Preferred destination: {dest}",
+        f"Services: {', '.join(services)}",
+        "",
+        "Message:",
+        message or "-",
+    ])
+    return f"mailto:{CONTACT_EMAIL}?subject={quote(subject, safe='')}&body={quote(body, safe='')}"
+
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def page_contact():
+    hero("contact_head", "contact_sub")
+    st.subheader(t("send_inquiry"))
+
+    with st.form("contact_form"):
+        c1, c2 = st.columns(2)
+        name = c1.text_input(t("name"))
+        email = c2.text_input(t("email"))
+        c3, c4 = st.columns(2)
+        phone = c3.text_input(t("phone"))
+        dest = c4.selectbox(t("destination"), DESTINATIONS, format_func=destination_name, key="c_dest")
+        services = st.multiselect(t("interested"), SERVICE_OPTIONS, format_func=service_name, key="c_services")
+        message = st.text_area(t("message"), placeholder=t("message_hint"), height=150, key="c_message")
+        submitted = st.form_submit_button(t("submit"), type="primary")
+
+    if submitted:
+        if not name.strip() or not email.strip() or not services:
+            st.session_state["mailto"] = None
+            st.error(t("required_error"))
+        elif not EMAIL_RE.match(email.strip()):
+            st.session_state["mailto"] = None
+            st.error(t("email_error"))
+        else:
+            st.session_state["mailto"] = build_mailto(
+                name.strip(), email.strip(), phone.strip(), dest, services, message.strip()
+            )
+
+    if st.session_state.get("mailto"):
+        st.success(t("success"))
+        st.link_button(t("open_email"), st.session_state["mailto"], type="primary")
+
+    st.write("")
+    st.caption(f"{t('contact_label')}: {CONTACT_EMAIL} · {WEBSITE}")
+
+
+def render_footer():
+    st.divider()
+    c1, c2, c3 = st.columns([2, 1, 1.5])
+    c1.markdown("**🌍 Hanna Edu**")
+    c1.caption(t("footer"))
+    c2.markdown(f"**{t('services')}**")
+    for s in SERVICE_OPTIONS:
+        c2.caption(service_name(s))
+    c3.markdown(f"**{t('contact_label')}**")
+    c3.caption(CONTACT_EMAIL)
+    c3.caption(WEBSITE)
+    st.caption(t("legal"))
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+render_header()
+
+{
+    "home": page_home,
+    "education": page_education,
+    "visa": page_visa,
+    "travel": page_travel,
+    "contact": page_contact,
+}.get(st.session_state["page"], page_home)()
+
+render_footer()
