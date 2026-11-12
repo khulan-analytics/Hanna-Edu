@@ -1,48 +1,66 @@
 
 import streamlit as st
 from urllib.parse import quote
-from datetime import date
 
 # =========================================================
 # PAGE CONFIGURATION
 # =========================================================
 
 st.set_page_config(
-    page_title="Hanna Edu | Global Education & Travel",
+    page_title="Hanna Edu | Global Consultancy",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # =========================================================
-# BRAND COLORS & CUSTOM CSS
+# BRAND COLORS
 # =========================================================
 
 NAVY = "#142238"
 GOLD = "#D6B46A"
 CREAM = "#F7F5F0"
-DARK = "#202B3C"
 MUTED = "#718096"
+
+# =========================================================
+# OFFICIAL HANNA EDU WEBSITE IMAGES
+# =========================================================
+
+HERO_IMAGE = (
+    "https://static.wixstatic.com/media/"
+    "d7ab6f_a08c7048efa0443bac8b5a85931f6e8e~mv2.png"
+)
+
+SECOND_IMAGE = (
+    "https://static.wixstatic.com/media/"
+    "d7ab6f_f3e2a5c60104491ba57c3c89e23f9b2d~mv2.png"
+)
+
+CONTACT_IMAGE = (
+    "https://static.wixstatic.com/media/"
+    "d7ab6f_37d9c1f1c2b94aeaa0c51e7a847f7b03~mv2.png"
+)
+
+# =========================================================
+# CUSTOM CSS
+# =========================================================
 
 st.markdown("""
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url(
+'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap'
+);
 
 .stApp {
     background-color: #F7F5F0;
-    color: #202B3C;
     font-family: 'DM Sans', sans-serif;
 }
 
-header[data-testid="stHeader"] {
-    background: transparent;
-}
-
 .block-container {
+    max-width: 1250px;
     padding-top: 2rem;
     padding-bottom: 3rem;
-    max-width: 1250px;
 }
 
 h1, h2, h3 {
@@ -50,42 +68,22 @@ h1, h2, h3 {
     color: #142238 !important;
 }
 
-.hero {
-    background: linear-gradient(
-        115deg,
-        rgba(12, 27, 48, 0.97),
-        rgba(28, 53, 77, 0.87)
-    );
-    padding: 65px 55px;
-    border-radius: 18px;
-    color: white;
-    margin-bottom: 25px;
-    border: 1px solid rgba(214,180,106,0.4);
-}
-
-.hero h1 {
-    font-family: 'Playfair Display', serif !important;
-    font-size: 49px !important;
-    color: white !important;
-    line-height: 1.2;
-}
-
-.hero p {
-    color: #E2E7ED;
-    font-size: 17px;
-    line-height: 1.8;
-    max-width: 700px;
-}
-
-.gold-text {
-    color: #E4C77F;
-}
-
-.eyebrow {
-    color: #D6B46A;
+.section-label {
+    color: #B18B42;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
+}
+
+.brand-name {
+    font-family: 'Playfair Display', serif;
+    color: #142238;
+    font-size: 29px;
+    font-weight: 700;
+}
+
+.gold {
+    color: #D6B46A;
 }
 
 .service-card {
@@ -93,8 +91,9 @@ h1, h2, h3 {
     padding: 27px;
     border-radius: 14px;
     border: 1px solid #E8E4DA;
-    min-height: 215px;
+    min-height: 205px;
     box-shadow: 0 4px 15px rgba(20,34,56,0.04);
+    margin-bottom: 15px;
 }
 
 .service-card h3 {
@@ -105,26 +104,27 @@ h1, h2, h3 {
 .service-card p {
     color: #718096;
     font-size: 14px;
-    line-height: 1.7;
+    line-height: 1.8;
 }
 
 .service-icon {
-    font-size: 31px;
-    margin-bottom: 13px;
+    font-size: 32px;
+    margin-bottom: 12px;
 }
 
 .country-card {
     background: #142238;
     color: white;
-    border-radius: 12px;
-    padding: 22px;
+    padding: 22px 10px;
     text-align: center;
+    border-radius: 12px;
     border-bottom: 3px solid #D6B46A;
+    min-height: 135px;
 }
 
 .country-card h3 {
     color: white !important;
-    font-size: 19px;
+    font-size: 18px;
 }
 
 .country-card p {
@@ -132,46 +132,16 @@ h1, h2, h3 {
     font-size: 12px;
 }
 
-.section-label {
-    color: #B18B42;
-    font-size: 12px;
-    letter-spacing: 2px;
-    font-weight: 700;
-}
-
 .info-box {
     background: #EEEAE0;
-    padding: 23px;
+    padding: 25px;
     border-radius: 12px;
     border-left: 4px solid #D6B46A;
 }
 
-.footer {
-    background: #142238;
-    padding: 35px;
-    border-radius: 15px;
-    color: white;
-    text-align: center;
-    margin-top: 40px;
-}
-
-.footer p {
-    color: #DCE2EA;
-}
-
-.stButton > button {
-    background-color: #142238;
-    color: white;
-    border-radius: 8px;
-    border: 1px solid #D6B46A;
-    padding: 10px 22px;
-    font-weight: 600;
-}
-
-.stButton > button:hover {
-    background-color: #D6B46A;
-    color: #142238;
-    border-color: #D6B46A;
+.info-box p {
+    color: #526174;
+    line-height: 1.8;
 }
 
 div[data-testid="stSidebar"] {
@@ -186,6 +156,25 @@ div[data-testid="stSidebar"] label {
     color: white !important;
 }
 
+.stButton > button,
+.stLinkButton > a {
+    background-color: #142238;
+    color: white;
+    border: 1px solid #D6B46A;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.stButton > button:hover,
+.stLinkButton > a:hover {
+    background-color: #D6B46A;
+    color: #142238;
+}
+
+div[data-testid="stImage"] img {
+    border-radius: 12px;
+}
+
 hr {
     border-color: #E6E0D5;
 }
@@ -195,32 +184,110 @@ hr {
 
 
 # =========================================================
-# BRAND IMAGES FROM HANNA EDU WEBSITE
+# SERVICE INFORMATION
 # =========================================================
 
-HERO_IMAGE = (
-    "https://static.wixstatic.com/media/"
-    "d7ab6f_a08c7048efa0443bac8b5a85931f6e8e~mv2.png"
-)
+services = {
 
-SECOND_IMAGE = (
-    "https://static.wixstatic.com/media/"
-    "d7ab6f_f3e2a5c60104491ba57c3c89e23f9b2d~mv2.png"
-)
+    "Education": {
+        "icon": "🎓",
+        "title": "Education Abroad",
+        "description": (
+            "Explore international education opportunities, "
+            "school placement and academic pathways."
+        ),
+        "items": [
+            "School and university placement",
+            "ESL programs",
+            "Undergraduate programs",
+            "Graduate programs",
+            "Education consultation",
+            "Application guidance"
+        ]
+    },
+
+    "Visa": {
+        "icon": "🛂",
+        "title": "Visa Consulting",
+        "description": (
+            "Get guidance with visa applications, "
+            "documentation and application preparation."
+        ),
+        "items": [
+            "Visitor visa consultation",
+            "Student visa guidance",
+            "Visa documentation",
+            "Visa category change guidance",
+            "Application preparation"
+        ]
+    },
+
+    "Travel": {
+        "icon": "✈️",
+        "title": "Travel Services",
+        "description": (
+            "Prepare for international travel "
+            "with practical travel-related assistance."
+        ),
+        "items": [
+            "Flight booking assistance",
+            "Hotel booking assistance",
+            "Travel planning",
+            "Travel documentation",
+            "Destination information"
+        ]
+    },
+
+    "Relocation": {
+        "icon": "🌍",
+        "title": "Relocation Support",
+        "description": (
+            "Prepare for moving abroad and "
+            "understand practical settlement considerations."
+        ),
+        "items": [
+            "Pre-departure guidance",
+            "Moving abroad preparation",
+            "Settlement information",
+            "International lifestyle orientation",
+            "Long-term planning"
+        ]
+    },
+
+    "Language": {
+        "icon": "📚",
+        "title": "Language Courses",
+        "description": (
+            "Explore English and Korean online "
+            "learning opportunities."
+        ),
+        "items": [
+            "English online courses",
+            "Korean online courses",
+            "Language learning resources",
+            "Study preparation"
+        ]
+    }
+}
 
 
 # =========================================================
-# SIDEBAR NAVIGATION
+# SIDEBAR
 # =========================================================
 
 with st.sidebar:
 
     st.markdown(
-        "<h2 style='color:#E4C77F;'>HANNA EDU</h2>",
+        """
+        <h2 style="color:#E4C77F;">
+            HANNA EDU
+        </h2>
+        <p style="font-size:11px;letter-spacing:2px;">
+            GLOBAL CONSULTANCY
+        </p>
+        """,
         unsafe_allow_html=True
     )
-
-    st.caption("GLOBAL EDUCATION & CONSULTING")
 
     st.markdown("---")
 
@@ -237,59 +304,70 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.markdown("### Explore our services")
+    st.markdown("### Explore Services")
 
     selected_services = st.multiselect(
-        "Choose your interests",
+        "Select one or more interests",
         [
             "Education",
-            "Visa Consulting",
+            "Visa",
             "Travel",
             "Relocation",
-            "Language Courses"
+            "Language"
         ],
-        default=[
-            "Education",
-            "Visa Consulting"
-        ]
+        default=["Education", "Visa"]
     )
 
     st.markdown("---")
 
-    st.markdown("**Our destinations**")
-    st.caption("🇺🇸 USA")
-    st.caption("🇨🇦 Canada")
-    st.caption("🇦🇺 Australia")
-    st.caption("🇰🇷 South Korea")
-    st.caption("🇪🇺 Europe")
+    st.markdown("### Destinations")
+
+    st.markdown("""
+    🇺🇸 United States
+
+    🇨🇦 Canada
+
+    🇦🇺 Australia
+
+    🇰🇷 South Korea
+
+    🌍 Europe
+    """)
 
     st.markdown("---")
-    st.caption("Your journey starts with Hanna Edu.")
+
+    st.caption("Your journey starts here.")
 
 
 # =========================================================
-# HEADER / BRANDING
+# WEBSITE HEADER
 # =========================================================
 
-col1, col2 = st.columns([3, 1])
+header1, header2 = st.columns([3, 1])
 
-with col1:
+with header1:
+
     st.markdown(
-        f"""
-        <h2 style='margin-bottom:0;'>
-            HANNA <span style='color:{GOLD};'>EDU.</span>
-        </h2>
-        <p style='color:{MUTED}; margin-top:0;'>
-            Global Education · Visa · Travel · Relocation
+        """
+        <div class="brand-name">
+            HANNA <span style="color:#D6B46A;">EDU.</span>
+        </div>
+        <p style="color:#718096;font-size:13px;">
+            Education · Visa · Travel · Relocation
         </p>
         """,
         unsafe_allow_html=True
     )
 
-with col2:
+with header2:
+
     st.markdown(
-        "<p style='text-align:right;color:#B18B42;"
-        "font-weight:600;'>MONGOLIA · GLOBAL SERVICES</p>",
+        """
+        <p style="text-align:right;color:#B18B42;
+        font-size:12px;font-weight:700;">
+            MONGOLIA | INTERNATIONAL SERVICES
+        </p>
+        """,
         unsafe_allow_html=True
     )
 
@@ -297,93 +375,34 @@ st.divider()
 
 
 # =========================================================
-# REUSABLE SERVICE DATA
+# REUSABLE SERVICE CARD
 # =========================================================
 
-services = {
-    "Education": {
-        "icon": "🎓",
-        "title": "Education Abroad",
-        "description": (
-            "Explore international education opportunities, "
-            "university applications, school placement, "
-            "and academic pathways."
-        ),
-        "items": [
-            "University and college placement",
-            "ESL and language programs",
-            "Undergraduate programs",
-            "Graduate programs",
-            "Application guidance",
-            "Education pathway consultation"
-        ]
-    },
+def show_service_card(service_name):
 
-    "Visa Consulting": {
-        "icon": "🛂",
-        "title": "Visa Consulting",
-        "description": (
-            "Get guidance on visa documentation, "
-            "application preparation, and understanding "
-            "the requirements of your destination."
-        ),
-        "items": [
-            "Visitor visa consultation",
-            "Student visa guidance",
-            "Document preparation",
-            "Visa category change guidance",
-            "Application review",
-            "Country-specific visa information"
-        ]
-    },
+    data = services[service_name]
 
-    "Travel": {
-        "icon": "✈️",
-        "title": "Travel Services",
-        "description": (
-            "Plan your international journey with "
-            "travel-related support and practical guidance."
-        ),
-        "items": [
-            "Flight booking assistance",
-            "Hotel booking assistance",
-            "Travel planning",
-            "Destination guidance",
-            "Travel document preparation"
-        ]
-    },
+    st.markdown(
+        f"""
+        <div class="service-card">
 
-    "Relocation": {
-        "icon": "🌍",
-        "title": "Relocation Support",
-        "description": (
-            "Prepare for your transition to a new country "
-            "with practical information and settlement guidance."
-        ),
-        "items": [
-            "Pre-departure guidance",
-            "Moving abroad preparation",
-            "Education and lifestyle orientation",
-            "Practical settlement information",
-            "Long-term planning"
-        ]
-    },
+            <div class="service-icon">
+                {data['icon']}
+            </div>
 
-    "Language Courses": {
-        "icon": "📚",
-        "title": "Language Learning",
-        "description": (
-            "Build language skills through online "
-            "English and Korean learning opportunities."
-        ),
-        "items": [
-            "English language courses",
-            "Korean language courses",
-            "Learning resources",
-            "Study preparation"
-        ]
-    }
-}
+            <h3>{data['title']}</h3>
+
+            <p>{data['description']}</p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    with st.expander(f"Explore {data['title']}"):
+
+        for item in data["items"]:
+            st.markdown(f"✓ {item}")
 
 
 # =========================================================
@@ -392,40 +411,28 @@ services = {
 
 if page == "Home":
 
-    # Hero image from original website
-    try:
-        st.image(HERO_IMAGE, use_container_width=True)
-    except Exception:
-        pass
+    # Official homepage banner image
 
-    st.markdown("""
-    <div class="hero">
-        <div class="eyebrow">YOUR FUTURE. YOUR WORLD.</div>
-
-        <h1>
-            Think Beyond Borders.<br>
-            <span class="gold-text">We Help You Get There.</span>
-        </h1>
-
-        <p>
-            From international education and visa consulting
-            to travel planning and relocation support,
-            Hanna Edu helps you navigate your next chapter abroad.
-        </p>
-
-        <p style="color:#E4C77F;font-size:14px;">
-            EDUCATION &nbsp; | &nbsp; VISA &nbsp; |
-            &nbsp; TRAVEL &nbsp; | &nbsp; RELOCATION
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("### Explore What We Do")
-
-    st.caption(
-        "Select one or multiple services from the menu "
-        "to explore the areas that interest you."
+    st.image(
+        HERO_IMAGE,
+        use_container_width=True
     )
+
+    st.markdown("")
+
+    st.markdown(
+        '<div class="section-label">OUR SERVICES</div>',
+        unsafe_allow_html=True
+    )
+
+    st.title("Explore Your Opportunities")
+
+    st.write(
+        "Discover international education, visa "
+        "consulting, travel and relocation services."
+    )
+
+    # Display selected services
 
     if selected_services:
 
@@ -433,52 +440,53 @@ if page == "Home":
 
         for i, service in enumerate(selected_services):
 
-            data = services[service]
-
             with cols[i % 2]:
-
-                st.markdown(
-                    f"""
-                    <div class="service-card">
-                        <div class="service-icon">{data['icon']}</div>
-                        <h3>{data['title']}</h3>
-                        <p>{data['description']}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-                with st.expander(f"Explore {service}"):
-
-                    for item in data["items"]:
-                        st.markdown(f"✓ {item}")
+                show_service_card(service)
 
     else:
-        st.info("Choose a service from the sidebar to get started.")
+
+        st.info(
+            "Select your interests from the sidebar "
+            "to explore our services."
+        )
 
     st.markdown("---")
 
-    st.markdown("### Your Destination. Our Expertise.")
+    # Destinations
 
-    country_cols = st.columns(5)
+    st.markdown(
+        '<div class="section-label">GLOBAL DESTINATIONS</div>',
+        unsafe_allow_html=True
+    )
 
-    countries = [
+    st.title("Where Would You Like to Go?")
+
+    country_data = [
         ("🇺🇸", "USA", "Education & Visa"),
         ("🇨🇦", "Canada", "Education & Visa"),
         ("🇦🇺", "Australia", "Study & Travel"),
         ("🇰🇷", "South Korea", "Study & Language"),
-        ("🇪🇺", "Europe", "Travel & Education")
+        ("🌍", "Europe", "Travel & Education")
     ]
 
-    for col, country in zip(country_cols, countries):
+    country_cols = st.columns(5)
+
+    for col, country in zip(country_cols, country_data):
 
         with col:
+
             st.markdown(
                 f"""
                 <div class="country-card">
-                    <div style="font-size:30px;">{country[0]}</div>
+
+                    <div style="font-size:30px;">
+                        {country[0]}
+                    </div>
+
                     <h3>{country[1]}</h3>
+
                     <p>{country[2]}</p>
+
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -486,29 +494,49 @@ if page == "Home":
 
     st.markdown("---")
 
-    st.markdown("### How We Can Help")
+    # Second official image
+
+    st.image(
+        SECOND_IMAGE,
+        use_container_width=True
+    )
+
+    st.markdown("---")
+
+    st.markdown(
+        '<div class="section-label">HOW WE HELP</div>',
+        unsafe_allow_html=True
+    )
+
+    st.title("From Planning to Your Next Chapter")
 
     steps = st.columns(3)
 
     with steps[0]:
-        st.markdown("#### 01. Discover")
+
+        st.markdown("### 01. Discover")
+
         st.write(
-            "Tell us your goals, preferred destination, "
-            "and the services you need."
+            "Tell us about your international "
+            "education, visa or travel goals."
         )
 
     with steps[1]:
-        st.markdown("#### 02. Prepare")
+
+        st.markdown("### 02. Prepare")
+
         st.write(
-            "Explore your options and receive guidance "
-            "on the relevant application process."
+            "Explore available options and "
+            "prepare the relevant documents."
         )
 
     with steps[2]:
-        st.markdown("#### 03. Move Forward")
+
+        st.markdown("### 03. Move Forward")
+
         st.write(
-            "Prepare for your international journey "
-            "with practical support."
+            "Get ready for your international "
+            "journey and next opportunities."
         )
 
     st.markdown("---")
@@ -516,13 +544,16 @@ if page == "Home":
     st.markdown(
         """
         <div class="info-box">
-            <h3>Every journey begins with a plan.</h3>
+
+            <h3>One Destination. New Possibilities.</h3>
+
             <p>
-                Whether you want to study overseas, explore
-                visa options, travel internationally, or
-                prepare for a new life abroad, Hanna Edu
-                is here to help you understand your next steps.
+                Whether you are planning to study abroad,
+                apply for a visa, travel internationally,
+                or prepare for a new life overseas,
+                Hanna Edu helps you understand your next steps.
             </p>
+
         </div>
         """,
         unsafe_allow_html=True
@@ -540,42 +571,58 @@ elif page == "Education":
         unsafe_allow_html=True
     )
 
-    st.title("Your Education. Your Global Future.")
+    st.title("Build Your Global Future.")
 
     st.write(
-        "Discover international academic opportunities "
-        "and explore education pathways around the world."
+        "Explore international education opportunities "
+        "and academic pathways."
     )
 
-    try:
-        st.image(SECOND_IMAGE, use_container_width=True)
-    except Exception:
-        pass
+    st.image(
+        SECOND_IMAGE,
+        use_container_width=True
+    )
 
-    st.markdown("### Education Services")
+    st.markdown("### Our Education Services")
 
-    education_programs = [
-        ("🎓", "ESL Programs",
-         "Improve your English language skills abroad."),
-        ("🏫", "Undergraduate",
-         "Explore international bachelor's degree programs."),
-        ("📚", "Graduate Programs",
-         "Plan your master's or postgraduate education."),
-        ("🌏", "School Placement",
-         "Explore suitable international educational institutions.")
+    education_options = [
+        ("🎓", "University Placement",
+         "Explore international universities and academic programs."),
+
+        ("📚", "ESL Programs",
+         "Explore English language learning opportunities."),
+
+        ("🏫", "Undergraduate Programs",
+         "Plan your international undergraduate education."),
+
+        ("🌍", "Graduate Programs",
+         "Explore postgraduate and master's degree opportunities."),
+
+        ("🗣️", "Language Courses",
+         "Explore online English and Korean courses."),
+
+        ("📝", "Application Guidance",
+         "Understand application requirements and preparation.")
     ]
 
     cols = st.columns(2)
 
-    for i, (icon, title, description) in enumerate(education_programs):
+    for i, (icon, title, description) in enumerate(
+        education_options
+    ):
 
         with cols[i % 2]:
+
             st.markdown(
                 f"""
                 <div class="service-card">
+
                     <div class="service-icon">{icon}</div>
+
                     <h3>{title}</h3>
+
                     <p>{description}</p>
+
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -583,26 +630,47 @@ elif page == "Education":
 
     st.markdown("---")
 
-    st.markdown("### Education Partners")
+    st.markdown("### Start Your Education Journey")
 
-    st.write(
-        "Hanna Edu's website lists international educational "
-        "institutions including:"
+    destination = st.selectbox(
+        "Preferred study destination",
+        [
+            "United States",
+            "Canada",
+            "Australia",
+            "South Korea",
+            "Europe",
+            "Other"
+        ]
     )
 
-    st.markdown("""
-    - Mentora College — USA
-    - University of Hawaiʻi — USA
-    - Midwestern Career College — USA
-    - Durham College — Canada
-    - Academia Language School — USA
-    - Canada Christian College — Canada
-    """)
-
-    st.caption(
-        "Program availability, partnerships, and admission "
-        "requirements should be confirmed before applying."
+    education_level = st.selectbox(
+        "Education level",
+        [
+            "English Language Program",
+            "Undergraduate",
+            "Graduate / Master's",
+            "Other"
+        ]
     )
+
+    if st.button("Continue to Contact Us"):
+
+        st.session_state["contact_destination"] = destination
+
+        st.session_state["contact_service"] = "Education"
+
+        st.session_state["contact_message"] = (
+            f"I am interested in {education_level} "
+            f"in {destination}."
+        )
+
+        st.session_state["page_from_education"] = True
+
+        st.info(
+            "Please select Contact Us from the sidebar "
+            "to submit your inquiry."
+        )
 
 
 # =========================================================
@@ -619,8 +687,9 @@ elif page == "Visa Consulting":
     st.title("Your Visa Journey Starts Here.")
 
     st.write(
-        "Understand your visa options and prepare "
-        "your application documents with professional guidance."
+        "Get guidance on visa documentation, "
+        "application preparation and understanding "
+        "destination-specific requirements."
     )
 
     st.markdown("### Select Your Destination")
@@ -638,7 +707,7 @@ elif page == "Visa Consulting":
     )
 
     visa_type = st.selectbox(
-        "What type of visa or consultation do you need?",
+        "What type of consultation do you need?",
         [
             "Visitor / Tourist Visa",
             "Student Visa",
@@ -649,44 +718,51 @@ elif page == "Visa Consulting":
         ]
     )
 
-    visa_services = {
+    visa_options = {
+
         "United States": [
             "Visitor visa guidance",
             "Student visa guidance",
-            "Application documentation",
-            "Interview preparation"
+            "Document preparation",
+            "Application guidance"
         ],
+
         "Canada": [
             "Visitor visa guidance",
             "Study permit guidance",
             "Document preparation",
-            "Application review"
+            "Application guidance"
         ],
+
         "Australia": [
             "Visitor visa guidance",
             "Student visa guidance",
-            "Visa category change guidance",
-            "Application documentation"
+            "Document preparation",
+            "Application guidance"
         ],
+
         "South Korea": [
-            "Visitor visa guidance",
-            "Study-related visa guidance",
+            "Visa information",
+            "Study-related guidance",
             "Document preparation"
         ],
+
         "Schengen / Europe": [
-            "Tourist visa guidance",
+            "Tourist visa information",
             "Travel documentation",
             "Application preparation"
         ],
+
         "Other": [
             "General visa consultation",
             "Document preparation"
         ]
     }
 
-    st.markdown("### Available Consultation Areas")
+    st.markdown("### Consultation Areas")
 
-    for item in visa_services[destination]:
+    for item in visa_options[destination]:
+
         st.markdown(f"✓ {item}")
 
     st.markdown("---")
@@ -694,21 +770,45 @@ elif page == "Visa Consulting":
     st.markdown(
         f"""
         <div class="info-box">
+
             <h3>{destination} Consultation</h3>
+
             <p>
-                Selected service: {visa_type}<br>
-                Our consultation can help you understand
-                relevant requirements and documentation.
+                Selected consultation: {visa_type}
             </p>
+
+            <p>
+                Understand the relevant application
+                requirements and documentation
+                before taking your next step.
+            </p>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
     st.caption(
-        "Visa decisions are made by the relevant government "
-        "authorities. Consultation does not guarantee approval."
+        "Visa decisions are made by the relevant "
+        "government authorities. Consultation does "
+        "not guarantee visa approval."
     )
+
+    if st.button("Request Visa Consultation"):
+
+        st.session_state["contact_destination"] = destination
+
+        st.session_state["contact_service"] = "Visa Consulting"
+
+        st.session_state["contact_message"] = (
+            f"I am interested in {visa_type} "
+            f"for {destination}."
+        )
+
+        st.info(
+            "Select Contact Us from the sidebar "
+            "to send your inquiry."
+        )
 
 
 # =========================================================
@@ -722,41 +822,57 @@ elif page == "Travel & Relocation":
         unsafe_allow_html=True
     )
 
-    st.title("Go Further. Feel Prepared.")
+    st.title("Explore. Travel. Relocate.")
 
     st.write(
-        "Planning an international trip or preparing "
-        "to relocate? Explore practical travel services "
-        "and moving-abroad support."
+        "Prepare for international travel and "
+        "explore practical support for moving abroad."
+    )
+
+    st.image(
+        CONTACT_IMAGE,
+        use_container_width=True
     )
 
     travel_options = [
+
         ("✈️", "Flight Assistance",
          "Get assistance with international flight planning."),
+
         ("🏨", "Hotel Assistance",
          "Explore accommodation booking support."),
+
         ("🧳", "Travel Preparation",
          "Prepare your travel documents and itinerary."),
+
         ("🌍", "Moving Abroad",
-         "Understand practical steps before relocating."),
+         "Understand practical considerations before relocating."),
+
         ("🏡", "Settlement Guidance",
          "Explore information about adapting to a new country."),
+
         ("🗺️", "Destination Guidance",
-         "Learn about destinations and international travel.")
+         "Learn about international destinations and travel.")
     ]
 
     cols = st.columns(3)
 
-    for i, (icon, title, description) in enumerate(travel_options):
+    for i, (icon, title, description) in enumerate(
+        travel_options
+    ):
 
         with cols[i % 3]:
 
             st.markdown(
                 f"""
                 <div class="service-card">
+
                     <div class="service-icon">{icon}</div>
+
                     <h3>{title}</h3>
+
                     <p>{description}</p>
+
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -764,7 +880,7 @@ elif page == "Travel & Relocation":
 
     st.markdown("---")
 
-    st.markdown("### Where Are You Planning to Go?")
+    st.markdown("### Plan Your Journey")
 
     travel_destination = st.selectbox(
         "Select your destination",
@@ -775,11 +891,10 @@ elif page == "Travel & Relocation":
             "South Korea",
             "Europe",
             "Other"
-        ],
-        key="travel_destination"
+        ]
     )
 
-    travel_goal = st.radio(
+    travel_purpose = st.radio(
         "What is your main purpose?",
         [
             "Tourism",
@@ -791,10 +906,21 @@ elif page == "Travel & Relocation":
         horizontal=True
     )
 
-    st.info(
-        f"Destination: {travel_destination} | "
-        f"Purpose: {travel_goal}"
-    )
+    if st.button("Request Travel Consultation"):
+
+        st.session_state["contact_destination"] = travel_destination
+
+        st.session_state["contact_service"] = "Travel & Relocation"
+
+        st.session_state["contact_message"] = (
+            f"I am interested in {travel_purpose} "
+            f"in {travel_destination}."
+        )
+
+        st.info(
+            "Select Contact Us from the sidebar "
+            "to send your inquiry."
+        )
 
 
 # =========================================================
@@ -815,6 +941,13 @@ elif page == "Contact Us":
         "you are interested in."
     )
 
+    st.image(
+        CONTACT_IMAGE,
+        use_container_width=True
+    )
+
+    st.markdown("### Send an Inquiry")
+
     with st.form("contact_form"):
 
         name = st.text_input("Full Name")
@@ -823,7 +956,7 @@ elif page == "Contact Us":
 
         phone = st.text_input("Phone Number")
 
-        country = st.selectbox(
+        destination = st.selectbox(
             "Preferred Destination",
             [
                 "United States",
@@ -832,7 +965,8 @@ elif page == "Contact Us":
                 "South Korea",
                 "Europe",
                 "Other"
-            ]
+            ],
+            index=0
         )
 
         inquiry_services = st.multiselect(
@@ -843,61 +977,81 @@ elif page == "Contact Us":
                 "Travel",
                 "Relocation",
                 "Language Courses"
-            ]
+            ],
+            default=(
+                [st.session_state["contact_service"]]
+                if st.session_state.get("contact_service")
+                in [
+                    "Education",
+                    "Visa Consulting",
+                    "Travel & Relocation"
+                ]
+                else []
+            )
         )
 
         message = st.text_area(
             "Tell Us About Your Plans",
+            value=st.session_state.get(
+                "contact_message", ""
+            ),
             placeholder=(
-                "I am interested in studying abroad..."
+                "Tell us about your education, "
+                "visa or travel plans..."
             )
         )
 
         submitted = st.form_submit_button(
-            "Submit Inquiry",
+            "Prepare My Inquiry",
             use_container_width=True
         )
 
-        if submitted:
+    if submitted:
 
-            if not name or not email or not inquiry_services:
-                st.error(
-                    "Please enter your name, email, "
-                    "and at least one service."
-                )
+        if not name or not email or not inquiry_services:
 
-            else:
+            st.error(
+                "Please complete your name, email "
+                "and select at least one service."
+            )
 
-                subject = quote(
-                    f"Hanna Edu Inquiry - {name}"
-                )
+        else:
 
-                body = quote(
-                    f"""
+            subject = quote(
+                f"Hanna Edu Inquiry - {name}"
+            )
+
+            body = quote(
+                f"""
 Name: {name}
+
 Email: {email}
+
 Phone: {phone}
-Destination: {country}
+
+Destination: {destination}
+
 Services: {', '.join(inquiry_services)}
+
 Message: {message}
-                    """
-                )
+                """
+            )
 
-                mailto = (
-                    f"mailto:mongolianhannaedu@gmail.com"
-                    f"?subject={subject}&body={body}"
-                )
+            mailto = (
+                "mailto:mongolianhannaedu@gmail.com"
+                f"?subject={subject}&body={body}"
+            )
 
-                st.success(
-                    "Your inquiry is ready. "
-                    "Open your email application to send it."
-                )
+            st.success(
+                "Your inquiry is ready. "
+                "Open your email application to send it."
+            )
 
-                st.link_button(
-                    "Open Email to Send Inquiry",
-                    mailto,
-                    use_container_width=True
-                )
+            st.link_button(
+                "Open Email to Send Inquiry",
+                mailto,
+                use_container_width=True
+            )
 
     st.markdown("---")
 
@@ -906,50 +1060,54 @@ Message: {message}
     contact_cols = st.columns(3)
 
     with contact_cols[0]:
+
         st.markdown("#### 🇲🇳 Mongolia")
+
         st.write("99178308")
 
     with contact_cols[1]:
+
         st.markdown("#### 🇺🇸 USA")
+
         st.write("+1 (773) 209-9479")
 
     with contact_cols[2]:
+
         st.markdown("#### 🇨🇦 Canada")
+
         st.write("(780) 394-4377")
 
     st.markdown(
-        "📧 mongolianhannaedu@gmail.com"
+        "**Email:** mongolianhannaedu@gmail.com"
     )
 
     st.markdown(
-        "🌐 [Official Hanna Edu Website](https://www.hanna-edu.com/)"
+        "[Visit Official Hanna Edu Website](https://www.hanna-edu.com/)"
     )
 
 
 # =========================================================
-# FOOTER
+# VISUAL FOOTER
 # =========================================================
 
 st.markdown("---")
 
-st.markdown("""
-<div class="footer">
+# Use the original website's contact banner
+st.image(
+    CONTACT_IMAGE,
+    use_container_width=True
+)
 
-    <h2 style="color:#E4C77F;">
-        HANNA EDU
-    </h2>
-
-    <p>
-        GLOBAL EDUCATION · VISA · TRAVEL · RELOCATION
-    </p>
-
-    <p>
-        Helping You Navigate Your Future Beyond Borders.
-    </p>
-
-    <p style="font-size:12px;">
+st.markdown(
+    """
+    <p style="
+        text-align:center;
+        color:#718096;
+        font-size:12px;
+        padding:15px;
+    ">
         © 2026 Hanna Edu. All Rights Reserved.
     </p>
-
-</div>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
