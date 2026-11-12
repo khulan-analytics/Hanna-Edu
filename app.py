@@ -29,6 +29,39 @@ CONTACT_SERVICES = ["Education", "Visa Consulting", "Travel", "Relocation", "Lan
 PAGES = ["Home", "Education", "Visa Consulting", "Travel & Relocation", "Contact Us"]
 
 
+# Schools we work with. "url" opens the school's official website.
+SCHOOLS = [
+    {"id": "buffalo", "name": "University at Buffalo", "city": "Buffalo, New York", "country": "United States",
+     "type": "University", "url": "https://www.buffalo.edu/",
+     "about": "A public research university in Buffalo, New York, part of the State University of New York (SUNY) system.",
+     "programs": ["Undergraduate programs", "Graduate programs"]},
+    {"id": "hawaii", "name": "University of Hawaii", "city": "Hawaii", "country": "United States",
+     "type": "University", "url": "https://www.hawaii.edu/",
+     "about": "A public university system in the state of Hawaii, offering a wide range of academic programs.",
+     "programs": ["Undergraduate programs", "Graduate programs"]},
+    {"id": "midwestern", "name": "Midwestern Career College", "city": "Chicago, Illinois", "country": "United States",
+     "type": "College", "url": "https://mccollege.edu/",
+     "about": "A private career college in downtown Chicago with career-focused programs across four disciplines.",
+     "programs": ["Allied Health", "Business", "Information Technology", "English as a Second Language (ESL)"]},
+    {"id": "academia", "name": "Academia Language School", "city": "Honolulu, Hawaii", "country": "United States",
+     "type": "ESL / Language School", "url": "https://www.academiaschool.edu/",
+     "about": "An English language school in Honolulu, Hawaii, founded in 1969, near Ala Moana and Waikiki.",
+     "programs": ["English language programs", "ESL study preparation"]},
+    {"id": "mentora", "name": "Mentora College", "city": "Washington, D.C.", "country": "United States",
+     "type": "ESL / Language School", "url": "https://bau.edu/mentora-esl/mentora-college/",
+     "about": "The ESL school of Bay Atlantic University in Washington, D.C., offering English programs year-round.",
+     "programs": ["English as a Second Language (ESL)", "TOEFL, GRE, GMAT and SAT preparation (subject to availability)"]},
+    {"id": "durham", "name": "Durham College", "city": "Oshawa, Ontario", "country": "Canada",
+     "type": "College", "url": "https://durhamcollege.ca/",
+     "about": "A public college in the Durham Region of Ontario, Canada, offering career-focused education.",
+     "programs": ["College diploma and certificate programs", "Applied degree programs"]},
+    {"id": "ccc", "name": "Canada Christian College", "city": "Whitby, Ontario", "country": "Canada",
+     "type": "College", "url": "https://canadachristiancollege.com/",
+     "about": "A private Christian college in Whitby, Ontario, with degree programs in faith-based fields.",
+     "programs": ["Ministry", "Sacred Music", "Christian Counselling", "Business", "Religious Education"]},
+]
+
+
 def flatten(markup: str) -> str:
     """Strip indentation/blank lines so Markdown never renders HTML as a code block."""
     return " ".join(line.strip() for line in markup.splitlines() if line.strip())
@@ -152,6 +185,15 @@ div[data-testid="stHorizontalBlock"]:has(.brand) button[data-testid="stBaseButto
 .card h3 { font-size: 21px; margin: 0 0 8px; }
 .card p { color: var(--muted); font-size: 14.5px; line-height: 1.75; margin: 0; }
 
+
+a.card-link { text-decoration: none !important; color: inherit !important; display: block; }
+.card .more { display:inline-block; margin-top: 14px; color: #A9822F; font-weight: 700; font-size: 13.5px; }
+a.card-link:hover .more { color: var(--navy); }
+.tag { display:inline-block; background:#F3EBD6; color:#7A5E1E; font-size:12px; font-weight:600; border-radius:999px; padding:4px 12px; margin:0 6px 6px 0; }
+.school-city { color: var(--muted); font-size: 13.5px; margin: 0 0 12px !important; }
+a.chip { display:inline-block; text-decoration:none !important; background:white; color:var(--navy) !important; border:1px solid var(--line);
+  border-radius:999px; padding:9px 18px; margin:0 10px 10px 0; font-weight:600; font-size:14px; transition: all .2s ease; }
+a.chip:hover { background: var(--navy); color: var(--gold-soft) !important; border-color: var(--navy); }
 .dest {
   border-radius: 16px; padding: 28px 22px; min-height: 190px; color: white; margin-bottom: 16px;
   background: linear-gradient(160deg, var(--navy-2), var(--navy)); border-bottom: 3px solid var(--gold);
@@ -233,6 +275,21 @@ st.session_state.setdefault("page", "Home")
 
 def navigate(page_name):
     st.session_state["page"] = page_name
+    st.session_state["school"] = None
+
+
+def select_school(school_id):
+    st.session_state["school"] = school_id
+
+
+# Clickable cards link to "?page=..."; read it once per session, then clear it.
+if not st.session_state.get("qp_read"):
+    st.session_state["qp_read"] = True
+    _qp = st.query_params.get("page")
+    if _qp in PAGES:
+        st.session_state["page"] = _qp
+    if "page" in st.query_params:
+        st.query_params.clear()
 
 
 def go_to_contact(destination, services, message):
@@ -262,13 +319,17 @@ def page_head(label, title, subtitle):
 
 
 def cards(items, n_cols):
+    """items: (icon, title, text) or (icon, title, text, target_page). With a target page the whole card is a link."""
     cols = st.columns(n_cols, gap="medium")
-    for i, (icon, title, text) in enumerate(items):
+    for i, item in enumerate(items):
+        icon, title, text = item[:3]
+        target = item[3] if len(item) > 3 else None
+        body = f'<div class="icon-badge">{icon}</div><h3>{title}</h3><p>{text}</p>'
         with cols[i % n_cols]:
-            html(
-                f"""<div class="card"><div class="icon-badge">{icon}</div>
-                <h3>{title}</h3><p>{text}</p></div>"""
-            )
+            if target:
+                html(f'<a class="card-link" href="?page={quote(target)}" target="_self"><div class="card">{body}<span class="more">Explore →</span></div></a>')
+            else:
+                html(f'<div class="card">{body}</div>')
 
 
 def cta_band(title, text):
@@ -350,15 +411,20 @@ if page == "Home":
             "From your first question to your arrival abroad, everything in one place.")
     cards(
         [
-            ("🎓", "Education Abroad", "School and university placement, ESL, undergraduate and graduate programs, with application guidance."),
-            ("🛂", "Visa Consulting", "Visitor and student visa guidance, document preparation and category change support."),
-            ("✈️", "Travel Services", "Flight and hotel booking assistance, travel planning and documentation."),
-            ("🌍", "Relocation Support", "Pre-departure preparation, settlement information and long-term planning."),
-            ("📚", "Language Courses", "Online English and Korean courses and study preparation resources."),
-            ("📝", "Application Guidance", "Understand requirements, organize documents and prepare with confidence."),
+            ("🎓", "Education Abroad", "School and university placement, ESL, undergraduate and graduate programs, with application guidance.", "Education"),
+            ("🛂", "Visa Consulting", "Visitor and student visa guidance, document preparation and category change support.", "Visa Consulting"),
+            ("✈️", "Travel Services", "Flight and hotel booking assistance, travel planning and documentation.", "Travel & Relocation"),
+            ("🌍", "Relocation Support", "Pre-departure preparation, settlement information and long-term planning.", "Travel & Relocation"),
+            ("📚", "Language Courses", "Online English and Korean courses and study preparation resources.", "Education"),
+            ("📝", "Application Guidance", "Understand requirements, organize documents and prepare with confidence.", "Contact Us"),
         ],
         3,
     )
+
+    section("SCHOOLS WE WORK WITH", "Our partner institutions",
+            "Universities, colleges and language schools in the United States and Canada. Select any school to learn more.")
+    chips = "".join(f'<a class="chip" href="?page=Education" target="_self">{sc["name"]}</a>' for sc in SCHOOLS)
+    html(f"<div>{chips}</div>")
 
     section("DESTINATIONS", "Where would you like to go?",
             "We support applicants across popular study and travel destinations.")
@@ -416,31 +482,102 @@ if page == "Home":
 
 elif page == "Education":
     page_head("EDUCATION", "Build your global future.",
-              "Explore international education opportunities and academic pathways with guidance from application to arrival.")
+              "Explore the schools we work with and get guidance from application to arrival.")
 
-    cards(
-        [
-            ("🎓", "University Placement", "Explore international universities and academic programs that fit your goals."),
-            ("📚", "ESL Programs", "English language programs to prepare for further study abroad."),
-            ("🏫", "Undergraduate Programs", "Plan your international undergraduate education."),
-            ("🧑‍🎓", "Graduate Programs", "Explore postgraduate and master's degree opportunities."),
-            ("🗣️", "Language Courses", "Online English and Korean courses."),
-            ("📝", "Application Guidance", "Understand requirements and prepare strong applications."),
-        ],
-        3,
-    )
+    school = next((x for x in SCHOOLS if x["id"] == st.session_state.get("school")), None)
 
-    section("GET STARTED", "Tell us what you are looking for")
-    c1, c2 = st.columns(2, gap="large")
-    with c1:
-        destination = st.selectbox("Preferred study destination", DESTINATIONS)
-    with c2:
-        level = st.selectbox("Education level", ["English Language Program", "Undergraduate", "Graduate / Master's", "Other"])
-    st.button(
-        "Continue to Contact Us",
-        on_click=go_to_contact,
-        args=(destination, ["Education"], f"I am interested in {level} in {destination}."),
-    )
+    if school:
+        # ---------- school detail view ----------
+        st.button("← Back to all schools", key="back_schools", on_click=select_school, args=(None,))
+        tags = "".join(f'<span class="tag">{t}</span>' for t in [school["type"], school["country"]])
+        items = "".join(f"<li>✓ {p}</li>" for p in school["programs"])
+        html(
+            f"""<div class="card" style="min-height:0">
+            <div class="eyebrow" style="color:#A9822F">{school['city']}</div>
+            <h2 style="margin:8px 0 12px">{school['name']}</h2>
+            <div>{tags}</div>
+            <p style="margin-top:14px;font-size:15.5px">{school['about']}</p>
+            <h3 style="margin-top:22px;font-size:18px">Programs and areas of study</h3>
+            <ul class="checklist" style="list-style:none;padding:0;margin:10px 0 0">{items}</ul></div>"""
+        )
+        html(
+            """<div class="note">Program availability, tuition, deadlines and admission requirements are set by each school
+            and can change. Contact us for current details.</div>"""
+        )
+        st.write("")
+        b1, b2, _ = st.columns([1.2, 1.2, 2])
+        with b1:
+            st.link_button("Visit official website", school["url"], use_container_width=True)
+        with b2:
+            st.button(
+                "Inquire about this school",
+                key="inquire_school",
+                use_container_width=True,
+                on_click=go_to_contact,
+                args=(school["country"], ["Education"], f"I would like information about studying at {school['name']}."),
+            )
+    else:
+        # ---------- school list ----------
+        section("SCHOOLS WE WORK WITH", "Choose a school to learn more",
+                "Select a school to see details, visit its website or send an inquiry.")
+
+        f1, f2, _ = st.columns([1, 1, 2], gap="medium")
+        with f1:
+            country_filter = st.selectbox("Country", ["All", "United States", "Canada"])
+        with f2:
+            type_filter = st.selectbox("Type", ["All", "University", "College", "ESL / Language School"])
+
+        shown = [
+            x for x in SCHOOLS
+            if (country_filter == "All" or x["country"] == country_filter)
+            and (type_filter == "All" or x["type"] == type_filter)
+        ]
+
+        if not shown:
+            st.info("No schools match these filters. Try changing them.")
+
+        cols = st.columns(3, gap="medium")
+        for i, x in enumerate(shown):
+            with cols[i % 3]:
+                tags = "".join(f'<span class="tag">{t}</span>' for t in [x["type"], x["country"]])
+                html(
+                    f"""<div class="card" style="min-height:230px;margin-bottom:10px">
+                    <h3>{x['name']}</h3><p class="school-city">📍 {x['city']}</p>
+                    <div>{tags}</div><p style="margin-top:8px">{x['about']}</p></div>"""
+                )
+                st.button(
+                    "View details →",
+                    key=f"school_{x['id']}",
+                    use_container_width=True,
+                    on_click=select_school,
+                    args=(x["id"],),
+                )
+                st.write("")
+
+        section("OUR EDUCATION SERVICES", "How we help")
+        cards(
+            [
+                ("🎓", "School Placement", "Find the right school, college or university for your goals."),
+                ("📚", "ESL Programs", "English language programs to prepare for further study."),
+                ("🧑‍🎓", "Undergraduate & Graduate", "Plan your bachelor's or master's pathway abroad."),
+                ("🗣️", "Language Courses", "Online English and Korean courses."),
+                ("📝", "Application Guidance", "Understand requirements and prepare strong applications."),
+                ("🛂", "Student Visa Support", "Guidance on student visa documents and preparation.", "Visa Consulting"),
+            ],
+            3,
+        )
+
+        section("GET STARTED", "Tell us what you are looking for")
+        c1, c2 = st.columns(2, gap="large")
+        with c1:
+            destination = st.selectbox("Preferred study destination", DESTINATIONS)
+        with c2:
+            level = st.selectbox("Education level", ["English Language Program", "Undergraduate", "Graduate / Master's", "Other"])
+        st.button(
+            "Continue to Contact Us",
+            on_click=go_to_contact,
+            args=(destination, ["Education"], f"I am interested in {level} in {destination}."),
+        )
 
 # =========================================================
 # VISA CONSULTING
