@@ -410,13 +410,15 @@ COUNTRY_FLAGS = {
 }
 SCHOOL_EMOJI = {"University": "🎓", "College": "🏛️", "Language School": "🗣️"}
 GRADIENTS = [
-    "linear-gradient(135deg,#0f766e,#14b8a6)",
-    "linear-gradient(135deg,#1e3a8a,#3b82f6)",
-    "linear-gradient(135deg,#7c2d12,#f59e0b)",
-    "linear-gradient(135deg,#4c1d95,#a78bfa)",
-    "linear-gradient(135deg,#134e4a,#5eead4)",
-    "linear-gradient(135deg,#831843,#f472b6)",
+    "linear-gradient(135deg,#0b1f3a,#1d4ed8)",
+    "linear-gradient(135deg,#0f2a4a,#0ea5e9)",
+    "linear-gradient(135deg,#14284b,#6366f1)",
+    "linear-gradient(135deg,#0b1f3a,#334155)",
 ]
+FLAG_CODES = {
+    "United States": "us", "Canada": "ca", "Australia": "au",
+    "United Kingdom": "gb", "Europe": "eu", "Japan": "jp", "South Korea": "kr",
+}
 
 
 def slugify(value):
@@ -450,23 +452,159 @@ def image_source(key):
     return None
 
 
-def photo(key, height=180, emoji="🌍", label=""):
-    """Uniformly cropped image tile; gradient + emoji fallback when no file exists."""
-    src = image_source(key)
+def svg_uri(svg):
+    return "data:image/svg+xml;utf8," + quote(svg)
+
+
+def flag_img(dest, width=28):
+    """Real flag image. Local assets/flag_<code>.png wins, else flagcdn.com."""
+    code = FLAG_CODES.get(dest)
+    if not code:
+        return "🌍"
+    src = image_source(f"flag_{code}") or f"https://flagcdn.com/w160/{code}.png"
+    return f'<img class="flag" src="{src}" width="{width}" alt="{dest}">'
+
+
+def campus_svg(kind="University", variant=0):
+    top, bottom = [("#0b1f3a", "#1d4ed8"), ("#0f2a4a", "#0ea5e9"), ("#14284b", "#6366f1")][variant % 3]
+    head = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">'
+        f'<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{top}"/>'
+        f'<stop offset="1" stop-color="{bottom}"/></linearGradient></defs>'
+        '<rect width="800" height="400" fill="url(#g)"/>'
+        '<circle cx="650" cy="80" r="34" fill="#fde68a" fill-opacity=".9"/>'
+        '<g fill="#fff" fill-opacity=".18"><ellipse cx="140" cy="70" rx="70" ry="18"/>'
+        '<ellipse cx="200" cy="85" rx="55" ry="14"/><ellipse cx="560" cy="150" rx="60" ry="14"/></g>'
+        '<rect y="330" width="800" height="70" fill="#0b1f3a" fill-opacity=".85"/>'
+        '<path d="M360 330 L440 330 L520 400 L280 400Z" fill="#cbd5e1" fill-opacity=".5"/>'
+    )
+    trees = (
+        '<g><rect x="78" y="290" width="8" height="45" fill="#3f3f46"/><circle cx="82" cy="280" r="30" fill="#0d9488"/>'
+        '<rect x="714" y="290" width="8" height="45" fill="#3f3f46"/><circle cx="718" cy="280" r="30" fill="#0d9488"/></g>'
+    )
+    if kind == "University":
+        body = (
+            '<rect x="200" y="190" width="400" height="120" fill="#94a3b8"/>'
+            '<polygon points="190,172 400,98 610,172" fill="#e2e8f0"/>'
+            '<rect x="190" y="172" width="420" height="18" fill="#cbd5e1"/>'
+            + "".join(f'<rect x="{214 + i * 68}" y="190" width="24" height="120" fill="#f8fafc"/>' for i in range(6))
+            + '<rect x="370" y="76" width="60" height="22" fill="#e2e8f0"/>'
+            '<path d="M370 76 Q400 22 430 76Z" fill="#fbbf24"/>'
+            '<rect x="180" y="310" width="440" height="14" fill="#cbd5e1"/><rect x="160" y="324" width="480" height="12" fill="#94a3b8"/>'
+        )
+    elif kind == "College":
+        wins = "".join(
+            f'<rect x="{x}" y="{y}" width="18" height="26" fill="#38bdf8"/>'
+            for x in (150, 190, 230, 270, 310, 468, 508, 548, 588, 628) for y in (215, 265)
+        )
+        body = (
+            '<rect x="130" y="195" width="540" height="135" fill="#e2e8f0"/>' + wins +
+            '<rect x="350" y="95" width="100" height="235" fill="#f8fafc"/>'
+            '<polygon points="338,95 400,38 462,95" fill="#1e293b"/>'
+            '<circle cx="400" cy="135" r="22" fill="#fff" stroke="#0b1f3a" stroke-width="4"/>'
+            '<path d="M400 135 V120 M400 135 L411 141" stroke="#0b1f3a" stroke-width="3" fill="none"/>'
+            '<rect x="383" y="262" width="34" height="68" fill="#1e3a8a"/>'
+        )
+    else:
+        body = (
+            '<rect x="170" y="180" width="460" height="150" fill="#f8fafc"/>'
+            '<rect x="170" y="168" width="460" height="14" fill="#0b1f3a"/>'
+            + "".join(f'<rect x="{190 + i * 108}" y="205" width="90" height="85" fill="#7dd3fc"/>' for i in range(4))
+            + '<circle cx="400" cy="108" r="40" fill="#38bdf8"/>'
+            '<g fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"><ellipse cx="400" cy="108" rx="40" ry="14"/>'
+            '<ellipse cx="400" cy="108" rx="18" ry="40"/><line x1="360" y1="108" x2="440" y2="108"/></g>'
+            '<g font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#0b1f3a">'
+            '<rect x="170" y="60" width="96" height="38" rx="12" fill="#fff"/><text x="190" y="85">Hello</text>'
+            '<rect x="540" y="60" width="96" height="38" rx="12" fill="#fff"/><text x="566" y="85">안녕</text></g>'
+        )
+    return head + body + trees + "</svg>"
+
+
+def agency_hero_svg():
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 420" width="520" height="420">'
+        '<defs><radialGradient id="gl" cx="40%" cy="35%"><stop offset="0" stop-color="#60a5fa"/>'
+        '<stop offset="1" stop-color="#1e3a8a"/></radialGradient></defs>'
+        '<circle cx="260" cy="215" r="150" fill="url(#gl)"/>'
+        '<g fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="1.5"><ellipse cx="260" cy="215" rx="150" ry="55"/>'
+        '<ellipse cx="260" cy="215" rx="75" ry="150"/><line x1="110" y1="215" x2="410" y2="215"/>'
+        '<line x1="260" y1="65" x2="260" y2="365"/></g>'
+        '<g fill="#93c5fd" fill-opacity=".55"><path d="M170 150 q30-30 70-15 q20 20-5 40 q-30 10-45 30 q-25-20-20-55z"/>'
+        '<path d="M290 130 q40-20 80 10 q10 30-20 40 q-30-5-45 15 q-25-25-15-65z"/>'
+        '<path d="M300 250 q30-10 55 15 q-5 40-40 50 q-25-25-15-65z"/>'
+        '<path d="M190 255 q20-5 30 20 q-5 30-25 35 q-15-25-5-55z"/></g>'
+        '<path d="M70 330 C140 130 340 40 470 110" fill="none" stroke="#fbbf24" stroke-width="3" '
+        'stroke-dasharray="3 9" stroke-linecap="round"/>'
+        '<g transform="translate(468 108) rotate(28)"><polygon points="30,0 -10,-8 -22,-30 -30,-30 -22,-6 -40,-4 -44,-12 '
+        '-50,-12 -46,0 -50,12 -44,12 -40,4 -22,6 -30,30 -22,30 -10,8" fill="#fff"/></g>'
+        '<g transform="translate(40 70)"><rect width="90" height="70" rx="14" fill="#fff"/>'
+        '<polygon points="45,16 75,30 45,44 15,30" fill="#0b1f3a"/><path d="M28 38 v12 q17 10 34 0 v-12 l-17 8z" fill="#1d4ed8"/>'
+        '<line x1="75" y1="30" x2="75" y2="48" stroke="#fbbf24" stroke-width="3"/></g>'
+        '<g transform="translate(395 265)"><rect width="80" height="100" rx="10" fill="#fbbf24"/>'
+        '<circle cx="40" cy="40" r="18" fill="none" stroke="#0b1f3a" stroke-width="3"/>'
+        '<ellipse cx="40" cy="40" rx="8" ry="18" fill="none" stroke="#0b1f3a" stroke-width="2"/>'
+        '<rect x="18" y="72" width="44" height="6" rx="3" fill="#0b1f3a"/><rect x="26" y="84" width="28" height="5" rx="2.5" fill="#0b1f3a"/></g>'
+        '<g transform="translate(55 285)"><path d="M25 0 C8 0 0 13 0 25 C0 45 25 70 25 70 C25 70 50 45 50 25 C50 13 42 0 25 0z" fill="#ef4444"/>'
+        '<circle cx="25" cy="25" r="10" fill="#fff"/></g></svg>'
+    )
+
+
+def agency_office_svg():
+    skyline = "".join(
+        f'<rect x="{x}" y="{200 - h}" width="{w}" height="{h}" fill="#1e3a8a" fill-opacity=".55"/>'
+        for x, w, h in [(60, 50, 90), (120, 40, 130), (170, 60, 70), (240, 45, 110), (300, 55, 150),
+                        (370, 40, 80), (420, 60, 120), (490, 45, 95)]
+    )
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" width="640" height="440">'
+        '<rect width="640" height="440" rx="22" fill="#eaf1fb"/>'
+        '<rect x="40" y="40" width="560" height="190" rx="10" fill="#bfdbfe"/>'
+        '<circle cx="540" cy="80" r="22" fill="#fde68a"/>' + skyline +
+        '<rect x="40" y="40" width="560" height="190" rx="10" fill="none" stroke="#fff" stroke-width="6"/>'
+        '<line x1="320" y1="40" x2="320" y2="230" stroke="#fff" stroke-width="5"/>'
+        '<path d="M150 330 v-62 q0-34 40-34 q40 0 40 34 v62z" fill="#1d4ed8"/><circle cx="190" cy="212" r="27" fill="#f1c9a5"/>'
+        '<path d="M163 208 q4-30 30-28 q26 0 28 26 q-20-14-58 2z" fill="#1f2937"/>'
+        '<path d="M410 330 v-62 q0-34 40-34 q40 0 40 34 v62z" fill="#0f766e"/><circle cx="450" cy="212" r="27" fill="#e0ac84"/>'
+        '<path d="M421 212 q0-36 30-34 q30 2 28 34 q-12-18-30-16 q-18 0-28 16z" fill="#111827"/>'
+        '<rect x="30" y="326" width="580" height="22" rx="6" fill="#0b1f3a"/><rect x="70" y="348" width="14" height="70" fill="#1e293b"/>'
+        '<rect x="556" y="348" width="14" height="70" fill="#1e293b"/>'
+        '<rect x="285" y="292" width="70" height="36" rx="4" fill="#334155"/><rect x="291" y="297" width="58" height="26" fill="#38bdf8"/>'
+        '<rect x="110" y="312" width="52" height="14" fill="#fff"/><rect x="490" y="312" width="52" height="14" fill="#fff"/>'
+        '<rect x="565" y="290" width="26" height="36" rx="4" fill="#b45309"/><ellipse cx="578" cy="278" rx="26" ry="14" fill="#16a34a"/>'
+        '<ellipse cx="560" cy="290" rx="16" ry="10" fill="#22c55e"/></svg>'
+    )
+
+
+def school_art(school):
+    variant = int(hashlib.md5(school["name"].encode()).hexdigest(), 16) % 3
+    return svg_uri(campus_svg(school["type"], variant))
+
+
+def photo(key, height=180, emoji="🌍", label="", art=None, flag=None):
+    """Uniformly cropped tile: real photo > illustration (art) > navy gradient with flag/emoji."""
+    src = image_source(key) or art
     if src:
         style, inner = f"background-image:url('{src}');", ""
     else:
         idx = int(hashlib.md5(key.encode()).hexdigest(), 16) % len(GRADIENTS)
-        style, inner = f"background:{GRADIENTS[idx]};", f'<span class="ph-emoji">{emoji}</span>'
+        big = flag_img(flag, 84).replace('class="flag"', 'class="flag big"') if flag in FLAG_CODES else f'<span class="ph-emoji">{emoji}</span>'
+        style, inner = f"background:{GRADIENTS[idx]};", big
     cap = f'<div class="photo-cap">{label}</div>' if label else ""
     return f'<div class="photo" style="height:{height}px;{style}">{inner}{cap}</div>'
+
+
+def country_photo(dest, height=180):
+    return photo(
+        f"country_{slugify(dest)}", height, COUNTRY_FLAGS.get(dest, "🌍"),
+        f"{flag_img(dest, 26)} {destination_name(dest)}", flag=dest,
+    )
 
 
 def hero_bg(key):
     src = image_source(key) if key else None
     if not src:
         return ""
-    return ("background-image:linear-gradient(135deg,rgba(15,118,110,.88),rgba(17,24,39,.65)),"
+    return ("background-image:linear-gradient(135deg,rgba(11,31,58,.92),rgba(18,48,92,.75)),"
             f"url('{src}');")
 
 
@@ -531,14 +669,32 @@ st.markdown(
     html, body, [class*="css"], .stApp {font-family:'Inter',sans-serif;}
     #MainMenu, footer, header[data-testid="stHeader"] {visibility:hidden; height:0;}
     .block-container {padding-top: 1.5rem; max-width: 1150px;}
-    .label {color:#0f766e; font-weight:700; letter-spacing:.08em; font-size:.8rem; margin-bottom:.25rem;}
-    .hero {background:linear-gradient(135deg,#0f766e 0%,#115e59 100%); color:#fff;
+    .label {color:#1d4ed8; font-weight:700; letter-spacing:.08em; font-size:.8rem; margin-bottom:.25rem;}
+    .hero {background:linear-gradient(135deg,#0b1f3a 0%,#12305c 100%); color:#fff;
            padding:3rem 2rem; border-radius:20px; margin-bottom:1.5rem;}
     .hero h1 {color:#fff; font-size:2.4rem; line-height:1.2; margin:.4rem 0 1rem 0;}
     .hero p {font-size:1.1rem; opacity:.95; max-width:700px;}
-    .hero .label {color:#99f6e4;}
-    .hero {background-size:cover; background-position:center; box-shadow:0 10px 30px rgba(15,118,110,.25);}
+    .hero .label {color:#93c5fd;}
+    .hero {background-size:cover; background-position:center; box-shadow:0 10px 30px rgba(11,31,58,.30);}
     .muted {color:#6b7280;}
+    .brand {font-size:2.4rem; font-weight:800; letter-spacing:.07em; color:#0b1f3a; white-space:nowrap;
+            display:flex; align-items:center; gap:.8rem; line-height:1;}
+    .brand-mark {background:linear-gradient(135deg,#0b1f3a,#1d4ed8); color:#fff; border-radius:12px; width:50px; height:50px;
+                 display:inline-flex; align-items:center; justify-content:center; font-size:1.7rem; letter-spacing:0;}
+    @media (max-width:640px) {.brand {font-size:1.5rem;} .brand-mark {width:36px; height:36px; font-size:1.2rem;}
+                              .hero-art {display:none;}}
+    .hero-flex {display:flex; align-items:center; justify-content:space-between; gap:2rem;}
+    .hero-art {width:340px; max-width:38%; flex-shrink:0;}
+    .flag {border-radius:3px; box-shadow:0 1px 4px rgba(0,0,0,.35); vertical-align:middle; margin-right:.35rem;}
+    .flag.big {width:84px; border-radius:6px; margin:0; box-shadow:0 4px 14px rgba(0,0,0,.4);}
+    .flagcard {text-align:center; padding:.8rem .2rem; border:1px solid #e5e7eb; border-radius:14px; background:#fff;
+               font-weight:600; font-size:.82rem; margin-bottom:.4rem; min-height:104px;}
+    .flagcard.sel {border:2px solid #0b1f3a; background:#eff6ff;}
+    .flagcard .flag {margin:0 0 .4rem 0;}
+    [data-testid="stBaseButton-primary"], [data-testid="stBaseLinkButton-primary"] {
+        background:#0b1f3a !important; border-color:#0b1f3a !important; color:#fff !important;}
+    [data-testid="stBaseButton-primary"]:hover {background:#1d4ed8 !important; border-color:#1d4ed8 !important;}
+    .office-img {width:100%; border-radius:18px; box-shadow:0 8px 24px rgba(11,31,58,.18);}
     .photo {position:relative; width:100%; border-radius:14px; background-size:cover; background-position:center;
             display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:.6rem;
             box-shadow:0 2px 8px rgba(0,0,0,.08); transition:transform .25s ease, box-shadow .25s ease;}
@@ -575,18 +731,15 @@ def hero(head_key, sub_key, label_key=None, bg_key=None):
 # Header / navigation
 # ---------------------------------------------------------------------------
 def render_header():
-    cols = st.columns([1.3, 0.8, 1, 1.3, 1.3, 1.1, 1.1])
-    cols[0].markdown("### 🌍 Hanna Edu")
-    for col, page in zip(cols[1:6], PAGES):
+    left, right = st.columns([4, 1.3])
+    left.markdown('<div class="brand"><span class="brand-mark">H</span>HANNA EDU</div>', unsafe_allow_html=True)
+    right.selectbox(t("language"), LANGUAGES, key="language", label_visibility="collapsed")
+    cols = st.columns(len(PAGES))
+    for col, page in zip(cols, PAGES):
         col.button(
-            t(page),
-            key=f"nav_{page}",
-            on_click=go,
-            args=(page,),
-            use_container_width=True,
+            t(page), key=f"nav_{page}", on_click=go, args=(page,), use_container_width=True,
             type="primary" if st.session_state["page"] == page else "secondary",
         )
-    cols[6].selectbox(t("language"), LANGUAGES, key="language", label_visibility="collapsed")
     st.divider()
 
 
@@ -594,11 +747,13 @@ def render_header():
 # Pages
 # ---------------------------------------------------------------------------
 def page_home():
+    hero_art = image_source("agency_hero") or svg_uri(agency_hero_svg())
     st.markdown(
-        f"""<div class="hero" style="{hero_bg('hero_home')}">
+        f"""<div class="hero" style="{hero_bg('hero_home')}"><div class="hero-flex"><div>
         <div class="label">{t('hero_label')}</div>
         <h1>{t('hero_title')}</h1>
-        <p>{t('hero_desc')}</p></div>""",
+        <p>{t('hero_desc')}</p></div>
+        <img class="hero-art" src="{hero_art}" alt="Hanna Edu"></div></div>""",
         unsafe_allow_html=True,
     )
     c1, c2, _ = st.columns([1, 1, 3])
@@ -631,16 +786,15 @@ def page_home():
     tiles = st.columns(4)
     for i, d in enumerate(DESTINATIONS[:-1]):
         with tiles[i % 4]:
-            st.markdown(
-                photo(f"country_{slugify(d)}", 160, COUNTRY_FLAGS[d], f"{COUNTRY_FLAGS[d]} {destination_name(d)}"),
-                unsafe_allow_html=True,
-            )
+            st.markdown(country_photo(d, 160), unsafe_allow_html=True)
 
     st.write("")
     section_header("why", "why_title")
-    cols = st.columns(3)
-    for col, n in zip(cols, (1, 2, 3)):
-        with col.container(border=True):
+    img_col, text_col = st.columns([1.1, 1])
+    office = image_source("agency_office") or svg_uri(agency_office_svg())
+    img_col.markdown(f'<img class="office-img" src="{office}" alt="Hanna Edu team">', unsafe_allow_html=True)
+    for n in (1, 2, 3):
+        with text_col.container(border=True):
             st.markdown(f"**{t(f'why{n}')}**")
             st.caption(t(f"why{n}_desc"))
 
@@ -676,7 +830,7 @@ def page_education():
     if school:
         st.button(f"← {t('back')}", key="school_back", on_click=select_school, args=(None,))
         st.markdown(
-            photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"]),
+            photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"], art=school_art(school)),
             unsafe_allow_html=True,
         )
         st.markdown(f"## {school['name']}")
@@ -723,7 +877,7 @@ def page_education():
         for col, s in zip(cols, filtered[i:i + 2]):
             with col.container(border=True):
                 st.markdown(
-                    photo(f"school_{slugify(s['name'])}", 190, SCHOOL_EMOJI.get(s["type"], "🎓")),
+                    photo(f"school_{slugify(s['name'])}", 190, SCHOOL_EMOJI.get(s["type"], "🎓"), art=school_art(s)),
                     unsafe_allow_html=True,
                 )
                 st.markdown(f"### {s['name']}")
@@ -734,18 +888,26 @@ def page_education():
     st.caption(t("school_note"))
 
 
+def set_visa_dest(dest):
+    st.session_state["visa_dest_sel"] = dest
+
+
 def page_visa():
     hero("visa_head", "visa_sub", bg_key="hero_visa")
     st.subheader(t("choose_country"))
-    dest = st.selectbox(
-        t("choose_country"), VISA_DESTINATIONS, format_func=destination_name,
-        label_visibility="collapsed", key="visa_dest",
-    )
-    st.markdown(
-        photo(f"country_{slugify(dest)}", 220, COUNTRY_FLAGS.get(dest, "🌍"),
-              f"{COUNTRY_FLAGS.get(dest, '')} {destination_name(dest)}"),
-        unsafe_allow_html=True,
-    )
+    st.session_state.setdefault("visa_dest_sel", "United States")
+    dest = st.session_state["visa_dest_sel"]
+    cols = st.columns(len(VISA_DESTINATIONS))
+    for col, d in zip(cols, VISA_DESTINATIONS):
+        selected = d == dest
+        with col:
+            st.markdown(
+                f'<div class="flagcard{" sel" if selected else ""}">{flag_img(d, 56)}<div>{destination_name(d)}</div></div>',
+                unsafe_allow_html=True,
+            )
+            st.button("✓" if selected else "○", key=f"visa_pick_{slugify(d)}", on_click=set_visa_dest,
+                      args=(d,), use_container_width=True, type="primary" if selected else "secondary")
+    st.markdown(country_photo(dest, 240), unsafe_allow_html=True)
     st.subheader(t("visa_type"))
     vtype = st.radio(
         t("visa_type"), VISA_TYPES, format_func=t,
@@ -782,11 +944,7 @@ def page_travel():
         format_func=lambda k: t(k) if k in TEXT else service_name("Education"),
         key="travel_purpose",
     )
-    st.markdown(
-        photo(f"country_{slugify(dest)}", 240, COUNTRY_FLAGS.get(dest, "🌍"),
-              f"{COUNTRY_FLAGS.get(dest, '')} {destination_name(dest)}"),
-        unsafe_allow_html=True,
-    )
+    st.markdown(country_photo(dest, 240), unsafe_allow_html=True)
     services = ["Relocation"] if purpose == "moving_abroad" else ["Education"] if purpose == "education" else ["Travel"]
     purpose_en = TEXT[purpose][0] if purpose in TEXT else "Education"
     st.button(
@@ -852,7 +1010,7 @@ def page_contact():
 def render_footer():
     st.divider()
     c1, c2, c3 = st.columns([2, 1, 1.5])
-    c1.markdown("**🌍 Hanna Edu**")
+    c1.markdown("**HANNA EDU**")
     c1.caption(t("footer"))
     c2.markdown(f"**{t('services')}**")
     for s in SERVICE_OPTIONS:
