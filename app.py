@@ -410,10 +410,10 @@ COUNTRY_FLAGS = {
 }
 SCHOOL_EMOJI = {"University": "🎓", "College": "🏛️", "Language School": "🗣️"}
 GRADIENTS = [
-    "linear-gradient(135deg,#0b1f3a,#1d4ed8)",
-    "linear-gradient(135deg,#0f2a4a,#0ea5e9)",
-    "linear-gradient(135deg,#14284b,#6366f1)",
-    "linear-gradient(135deg,#0b1f3a,#334155)",
+    "linear-gradient(135deg,#1b3a6b,#2f63c8)",
+    "linear-gradient(135deg,#1d4378,#0ea5e9)",
+    "linear-gradient(135deg,#1f3f73,#6366f1)",
+    "linear-gradient(135deg,#1b3a6b,#334155)",
 ]
 FLAG_CODES = {
     "United States": "us", "Canada": "ca", "Australia": "au",
@@ -466,7 +466,7 @@ def flag_img(dest, width=28):
 
 
 def campus_svg(kind="University", variant=0):
-    top, bottom = [("#0b1f3a", "#1d4ed8"), ("#0f2a4a", "#0ea5e9"), ("#14284b", "#6366f1")][variant % 3]
+    top, bottom = [("#1b3a6b", "#2f63c8"), ("#1d4378", "#0ea5e9"), ("#1f3f73", "#6366f1")][variant % 3]
     head = (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">'
         f'<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{top}"/>'
@@ -475,7 +475,7 @@ def campus_svg(kind="University", variant=0):
         '<circle cx="650" cy="80" r="34" fill="#fde68a" fill-opacity=".9"/>'
         '<g fill="#fff" fill-opacity=".18"><ellipse cx="140" cy="70" rx="70" ry="18"/>'
         '<ellipse cx="200" cy="85" rx="55" ry="14"/><ellipse cx="560" cy="150" rx="60" ry="14"/></g>'
-        '<rect y="330" width="800" height="70" fill="#0b1f3a" fill-opacity=".85"/>'
+        '<rect y="330" width="800" height="70" fill="#1b3a6b" fill-opacity=".85"/>'
         '<path d="M360 330 L440 330 L520 400 L280 400Z" fill="#cbd5e1" fill-opacity=".5"/>'
     )
     trees = (
@@ -501,19 +501,19 @@ def campus_svg(kind="University", variant=0):
             '<rect x="130" y="195" width="540" height="135" fill="#e2e8f0"/>' + wins +
             '<rect x="350" y="95" width="100" height="235" fill="#f8fafc"/>'
             '<polygon points="338,95 400,38 462,95" fill="#1e293b"/>'
-            '<circle cx="400" cy="135" r="22" fill="#fff" stroke="#0b1f3a" stroke-width="4"/>'
-            '<path d="M400 135 V120 M400 135 L411 141" stroke="#0b1f3a" stroke-width="3" fill="none"/>'
+            '<circle cx="400" cy="135" r="22" fill="#fff" stroke="#1b3a6b" stroke-width="4"/>'
+            '<path d="M400 135 V120 M400 135 L411 141" stroke="#1b3a6b" stroke-width="3" fill="none"/>'
             '<rect x="383" y="262" width="34" height="68" fill="#1e3a8a"/>'
         )
     else:
         body = (
             '<rect x="170" y="180" width="460" height="150" fill="#f8fafc"/>'
-            '<rect x="170" y="168" width="460" height="14" fill="#0b1f3a"/>'
+            '<rect x="170" y="168" width="460" height="14" fill="#1b3a6b"/>'
             + "".join(f'<rect x="{190 + i * 108}" y="205" width="90" height="85" fill="#7dd3fc"/>' for i in range(4))
             + '<circle cx="400" cy="108" r="40" fill="#38bdf8"/>'
             '<g fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"><ellipse cx="400" cy="108" rx="40" ry="14"/>'
             '<ellipse cx="400" cy="108" rx="18" ry="40"/><line x1="360" y1="108" x2="440" y2="108"/></g>'
-            '<g font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#0b1f3a">'
+            '<g font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#1b3a6b">'
             '<rect x="170" y="60" width="96" height="38" rx="12" fill="#fff"/><text x="190" y="85">Hello</text>'
             '<rect x="540" y="60" width="96" height="38" rx="12" fill="#fff"/><text x="566" y="85">안녕</text></g>'
         )
@@ -538,12 +538,12 @@ def agency_hero_svg():
         '<g transform="translate(468 108) rotate(28)"><polygon points="30,0 -10,-8 -22,-30 -30,-30 -22,-6 -40,-4 -44,-12 '
         '-50,-12 -46,0 -50,12 -44,12 -40,4 -22,6 -30,30 -22,30 -10,8" fill="#fff"/></g>'
         '<g transform="translate(40 70)"><rect width="90" height="70" rx="14" fill="#fff"/>'
-        '<polygon points="45,16 75,30 45,44 15,30" fill="#0b1f3a"/><path d="M28 38 v12 q17 10 34 0 v-12 l-17 8z" fill="#1d4ed8"/>'
+        '<polygon points="45,16 75,30 45,44 15,30" fill="#1b3a6b"/><path d="M28 38 v12 q17 10 34 0 v-12 l-17 8z" fill="#2f63c8"/>'
         '<line x1="75" y1="30" x2="75" y2="48" stroke="#fbbf24" stroke-width="3"/></g>'
         '<g transform="translate(395 265)"><rect width="80" height="100" rx="10" fill="#fbbf24"/>'
-        '<circle cx="40" cy="40" r="18" fill="none" stroke="#0b1f3a" stroke-width="3"/>'
-        '<ellipse cx="40" cy="40" rx="8" ry="18" fill="none" stroke="#0b1f3a" stroke-width="2"/>'
-        '<rect x="18" y="72" width="44" height="6" rx="3" fill="#0b1f3a"/><rect x="26" y="84" width="28" height="5" rx="2.5" fill="#0b1f3a"/></g>'
+        '<circle cx="40" cy="40" r="18" fill="none" stroke="#1b3a6b" stroke-width="3"/>'
+        '<ellipse cx="40" cy="40" rx="8" ry="18" fill="none" stroke="#1b3a6b" stroke-width="2"/>'
+        '<rect x="18" y="72" width="44" height="6" rx="3" fill="#1b3a6b"/><rect x="26" y="84" width="28" height="5" rx="2.5" fill="#1b3a6b"/></g>'
         '<g transform="translate(55 285)"><path d="M25 0 C8 0 0 13 0 25 C0 45 25 70 25 70 C25 70 50 45 50 25 C50 13 42 0 25 0z" fill="#ef4444"/>'
         '<circle cx="25" cy="25" r="10" fill="#fff"/></g></svg>'
     )
@@ -562,11 +562,11 @@ def agency_office_svg():
         '<circle cx="540" cy="80" r="22" fill="#fde68a"/>' + skyline +
         '<rect x="40" y="40" width="560" height="190" rx="10" fill="none" stroke="#fff" stroke-width="6"/>'
         '<line x1="320" y1="40" x2="320" y2="230" stroke="#fff" stroke-width="5"/>'
-        '<path d="M150 330 v-62 q0-34 40-34 q40 0 40 34 v62z" fill="#1d4ed8"/><circle cx="190" cy="212" r="27" fill="#f1c9a5"/>'
+        '<path d="M150 330 v-62 q0-34 40-34 q40 0 40 34 v62z" fill="#2f63c8"/><circle cx="190" cy="212" r="27" fill="#f1c9a5"/>'
         '<path d="M163 208 q4-30 30-28 q26 0 28 26 q-20-14-58 2z" fill="#1f2937"/>'
         '<path d="M410 330 v-62 q0-34 40-34 q40 0 40 34 v62z" fill="#0f766e"/><circle cx="450" cy="212" r="27" fill="#e0ac84"/>'
         '<path d="M421 212 q0-36 30-34 q30 2 28 34 q-12-18-30-16 q-18 0-28 16z" fill="#111827"/>'
-        '<rect x="30" y="326" width="580" height="22" rx="6" fill="#0b1f3a"/><rect x="70" y="348" width="14" height="70" fill="#1e293b"/>'
+        '<rect x="30" y="326" width="580" height="22" rx="6" fill="#1b3a6b"/><rect x="70" y="348" width="14" height="70" fill="#1e293b"/>'
         '<rect x="556" y="348" width="14" height="70" fill="#1e293b"/>'
         '<rect x="285" y="292" width="70" height="36" rx="4" fill="#334155"/><rect x="291" y="297" width="58" height="26" fill="#38bdf8"/>'
         '<rect x="110" y="312" width="52" height="14" fill="#fff"/><rect x="490" y="312" width="52" height="14" fill="#fff"/>'
@@ -604,7 +604,7 @@ def hero_bg(key):
     src = image_source(key) if key else None
     if not src:
         return ""
-    return ("background-image:linear-gradient(135deg,rgba(11,31,58,.92),rgba(18,48,92,.75)),"
+    return ("background-image:linear-gradient(135deg,rgba(27,58,107,.92),rgba(37,84,147,.75)),"
             f"url('{src}');")
 
 
@@ -667,34 +667,35 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     html, body, [class*="css"], .stApp {font-family:'Inter',sans-serif;}
+    .stApp {font-size:1.05rem;}
     #MainMenu, footer, header[data-testid="stHeader"] {visibility:hidden; height:0;}
-    .block-container {padding-top: 1.5rem; max-width: 1150px;}
-    .label {color:#1d4ed8; font-weight:700; letter-spacing:.08em; font-size:.8rem; margin-bottom:.25rem;}
-    .hero {background:linear-gradient(135deg,#0b1f3a 0%,#12305c 100%); color:#fff;
-           padding:3rem 2rem; border-radius:20px; margin-bottom:1.5rem;}
-    .hero h1 {color:#fff; font-size:2.4rem; line-height:1.2; margin:.4rem 0 1rem 0;}
-    .hero p {font-size:1.1rem; opacity:.95; max-width:700px;}
+    .block-container {padding-top: 1.5rem; max-width: 1400px; width: 94%; padding-left: 2rem; padding-right: 2rem;}
+    .label {color:#2f63c8; font-weight:700; letter-spacing:.08em; font-size:.8rem; margin-bottom:.25rem;}
+    .hero {background:linear-gradient(135deg,#1b3a6b 0%,#255493 100%); color:#fff;
+           padding:4.5rem 3.5rem; border-radius:22px; margin-bottom:1.5rem;}
+    .hero h1 {color:#fff; font-size:3.2rem; line-height:1.2; margin:.4rem 0 1rem 0;}
+    .hero p {font-size:1.25rem; opacity:.95; max-width:760px;}
     .hero .label {color:#93c5fd;}
-    .hero {background-size:cover; background-position:center; box-shadow:0 10px 30px rgba(11,31,58,.30);}
+    .hero {background-size:cover; background-position:center; box-shadow:0 10px 30px rgba(27,58,107,.30);}
     .muted {color:#6b7280;}
-    .brand {font-size:2.4rem; font-weight:800; letter-spacing:.07em; color:#0b1f3a; white-space:nowrap;
+    .brand {font-size:2.4rem; font-weight:800; letter-spacing:.07em; color:#1b3a6b; white-space:nowrap;
             display:flex; align-items:center; gap:.8rem; line-height:1;}
-    .brand-mark {background:linear-gradient(135deg,#0b1f3a,#1d4ed8); color:#fff; border-radius:12px; width:50px; height:50px;
+    .brand-mark {background:linear-gradient(135deg,#1b3a6b,#2f63c8); color:#fff; border-radius:12px; width:50px; height:50px;
                  display:inline-flex; align-items:center; justify-content:center; font-size:1.7rem; letter-spacing:0;}
     @media (max-width:640px) {.brand {font-size:1.5rem;} .brand-mark {width:36px; height:36px; font-size:1.2rem;}
                               .hero-art {display:none;}}
     .hero-flex {display:flex; align-items:center; justify-content:space-between; gap:2rem;}
-    .hero-art {width:340px; max-width:38%; flex-shrink:0;}
+    .hero-art {width:440px; max-width:40%; flex-shrink:0;}
     .flag {border-radius:3px; box-shadow:0 1px 4px rgba(0,0,0,.35); vertical-align:middle; margin-right:.35rem;}
     .flag.big {width:84px; border-radius:6px; margin:0; box-shadow:0 4px 14px rgba(0,0,0,.4);}
     .flagcard {text-align:center; padding:.8rem .2rem; border:1px solid #e5e7eb; border-radius:14px; background:#fff;
                font-weight:600; font-size:.82rem; margin-bottom:.4rem; min-height:104px;}
-    .flagcard.sel {border:2px solid #0b1f3a; background:#eff6ff;}
+    .flagcard.sel {border:2px solid #1b3a6b; background:#eff6ff;}
     .flagcard .flag {margin:0 0 .4rem 0;}
     [data-testid="stBaseButton-primary"], [data-testid="stBaseLinkButton-primary"] {
-        background:#0b1f3a !important; border-color:#0b1f3a !important; color:#fff !important;}
-    [data-testid="stBaseButton-primary"]:hover {background:#1d4ed8 !important; border-color:#1d4ed8 !important;}
-    .office-img {width:100%; border-radius:18px; box-shadow:0 8px 24px rgba(11,31,58,.18);}
+        background:#1b3a6b !important; border-color:#1b3a6b !important; color:#fff !important;}
+    [data-testid="stBaseButton-primary"]:hover {background:#2f63c8 !important; border-color:#2f63c8 !important;}
+    .office-img {width:100%; border-radius:18px; box-shadow:0 8px 24px rgba(27,58,107,.18);}
     .photo {position:relative; width:100%; border-radius:14px; background-size:cover; background-position:center;
             display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:.6rem;
             box-shadow:0 2px 8px rgba(0,0,0,.08); transition:transform .25s ease, box-shadow .25s ease;}
