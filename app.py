@@ -418,6 +418,7 @@ VISA_DESTINATIONS = ["United States", "Canada", "Australia", "United Kingdom", "
 VISA_TYPES = ["visitor_visa", "student_visa", "documents", "general", "not_sure"]
 TRAVEL_PURPOSES = ["tourism", "family", "moving_abroad", "education"]
 SCHOOL_TYPE_KEYS = {"University": "university", "College": "college", "Language School": "language_school"}
+TRAVEL_ART = {"flight": "travel", "hotel": "hotel", "travel_prep": "suitcase", "moving": "relocation", "settlement": "relocation"}
 PAGES = ["home", "education", "visa", "travel", "canada_form", "contact"]
 
 # ---------------------------------------------------------------------------
@@ -498,7 +499,9 @@ def flag_img(dest, width=28):
     if not code:
         return "🌍"
     src = image_source(f"flag_{code}") or f"https://flagcdn.com/w160/{code}.png"
-    return f'<img class="flag" src="{src}" width="{width}" alt="{dest}">'
+    height = round(width * 2 / 3)
+    return (f'<img class="flag" src="{src}" alt="{dest}" '
+            f'style="width:{width}px;height:{height}px;object-fit:cover;">')
 
 
 def campus_svg(kind="University", variant=0):
@@ -611,6 +614,57 @@ def agency_office_svg():
     )
 
 
+def service_svg(kind):
+    """Clean illustrated cover (400x240) for each service."""
+    bg = {"education": ("#1b3a6b", "#2f63c8"), "visa": ("#1f3f73", "#0ea5e9"), "travel": ("#1d4378", "#38bdf8"),
+          "relocation": ("#1b3a6b", "#6366f1"), "language": ("#1f3f73", "#2f63c8"),
+          "hotel": ("#1d4378", "#6366f1"), "suitcase": ("#1b3a6b", "#0ea5e9")}[kind]
+    head = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240">'
+        f'<defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{bg[0]}"/>'
+        f'<stop offset="1" stop-color="{bg[1]}"/></linearGradient></defs><rect width="400" height="240" fill="url(#b)"/>'
+        '<circle cx="340" cy="40" r="70" fill="#fff" fill-opacity=".07"/><circle cx="50" cy="210" r="80" fill="#fff" fill-opacity=".06"/>'
+    )
+    art = {
+        "education": (
+            '<polygon points="200,58 308,100 200,142 92,100" fill="#fff"/>'
+            '<path d="M142 124 v36 q58 32 116 0 v-36 l-58 22z" fill="#cbd5e1"/>'
+            '<line x1="300" y1="104" x2="300" y2="158" stroke="#fbbf24" stroke-width="5"/><circle cx="300" cy="162" r="7" fill="#fbbf24"/>'
+            '<rect x="130" y="178" width="140" height="14" rx="3" fill="#fbbf24"/><rect x="140" y="192" width="120" height="14" rx="3" fill="#fff"/>'),
+        "visa": (
+            '<rect x="140" y="34" width="120" height="164" rx="12" fill="#fbbf24"/>'
+            '<circle cx="200" cy="96" r="30" fill="none" stroke="#1b3a6b" stroke-width="5"/>'
+            '<ellipse cx="200" cy="96" rx="13" ry="30" fill="none" stroke="#1b3a6b" stroke-width="3"/>'
+            '<line x1="170" y1="96" x2="230" y2="96" stroke="#1b3a6b" stroke-width="3"/>'
+            '<rect x="162" y="148" width="76" height="9" rx="4" fill="#1b3a6b"/><rect x="172" y="166" width="56" height="8" rx="4" fill="#1b3a6b"/>'
+            '<g transform="rotate(-18 280 170)"><circle cx="280" cy="170" r="34" fill="none" stroke="#fff" stroke-width="5"/>'
+            '<path d="M264 171 l12 12 l24 -26" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>'),
+        "travel": (
+            '<path d="M40 190 C120 90 240 70 340 80" fill="none" stroke="#fbbf24" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/>'
+            '<g transform="translate(215 118) rotate(-12) scale(1.9)"><polygon points="30,0 -10,-8 -22,-30 -30,-30 -22,-6 -40,-4 '
+            '-44,-12 -50,-12 -46,0 -50,12 -44,12 -40,4 -22,6 -30,30 -22,30 -10,8" fill="#fff"/></g>'),
+        "relocation": (
+            '<polygon points="200,40 300,118 100,118" fill="#fff"/><rect x="118" y="118" width="164" height="86" fill="#e2e8f0"/>'
+            '<rect x="182" y="150" width="36" height="54" rx="3" fill="#1b3a6b"/><rect x="134" y="134" width="34" height="30" fill="#38bdf8"/>'
+            '<rect x="232" y="134" width="34" height="30" fill="#38bdf8"/><rect x="262" y="54" width="22" height="42" fill="#fbbf24"/>'
+            '<rect x="296" y="168" width="64" height="42" rx="4" fill="#fbbf24"/><line x1="328" y1="168" x2="328" y2="210" stroke="#b45309" stroke-width="4"/>'),
+        "language": (
+            '<rect x="60" y="44" width="170" height="80" rx="22" fill="#fff"/><polygon points="90,122 90,150 118,122" fill="#fff"/>'
+            '<rect x="170" y="116" width="170" height="80" rx="22" fill="#fbbf24"/><polygon points="310,194 310,222 282,194" fill="#fbbf24"/>'
+            '<g font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#1b3a6b">'
+            '<text x="86" y="96">Hello</text><text x="206" y="168">안녕!</text></g>'),
+        "hotel": (
+            '<rect x="110" y="40" width="180" height="168" rx="6" fill="#f8fafc"/><rect x="110" y="40" width="180" height="18" rx="6" fill="#fbbf24"/>'
+            + "".join(f'<rect x="{128 + c * 48}" y="{72 + r * 40}" width="30" height="26" rx="3" fill="#7dd3fc"/>' for r in range(3) for c in range(3))
+            + '<rect x="184" y="170" width="32" height="38" rx="3" fill="#1b3a6b"/>'),
+        "suitcase": (
+            '<rect x="90" y="76" width="220" height="130" rx="16" fill="#fbbf24"/><path d="M160 76 v-20 q0-12 12-12 h56 q12 0 12 12 v20" '
+            'fill="none" stroke="#fff" stroke-width="10"/><rect x="132" y="76" width="14" height="130" fill="#b45309" fill-opacity=".45"/>'
+            '<rect x="254" y="76" width="14" height="130" fill="#b45309" fill-opacity=".45"/><rect x="180" y="124" width="40" height="22" rx="4" fill="#fff"/>'),
+    }[kind]
+    return head + art + "</svg>"
+
+
 def school_art(school):
     variant = int(hashlib.md5(school["name"].encode()).hexdigest(), 16) % 3
     return svg_uri(campus_svg(school["type"], variant))
@@ -623,7 +677,7 @@ def photo(key, height=180, emoji="🌍", label="", art=None, flag=None):
         style, inner = f"background-image:url('{src}');", ""
     else:
         idx = int(hashlib.md5(key.encode()).hexdigest(), 16) % len(GRADIENTS)
-        big = flag_img(flag, 84).replace('class="flag"', 'class="flag big"') if flag in FLAG_CODES else f'<span class="ph-emoji">{emoji}</span>'
+        big = flag_img(flag, 132).replace('class="flag"', 'class="flag big"') if flag in FLAG_CODES else f'<span class="ph-emoji">{emoji}</span>'
         style, inner = f"background:{GRADIENTS[idx]};", big
     cap = f'<div class="photo-cap">{label}</div>' if label else ""
     return f'<div class="photo" style="height:{height}px;{style}">{inner}{cap}</div>'
@@ -721,7 +775,7 @@ st.markdown(
     .hero-flex {display:flex; align-items:center; justify-content:space-between; gap:2rem;}
     .hero-art {width:440px; max-width:40%; flex-shrink:0;}
     .flag {border-radius:3px; box-shadow:0 1px 4px rgba(0,0,0,.35); vertical-align:middle; margin-right:.35rem;}
-    .flag.big {width:84px; border-radius:6px; margin:0; box-shadow:0 4px 14px rgba(0,0,0,.4);}
+    .flag.big {border-radius:8px; margin:0; box-shadow:0 4px 14px rgba(0,0,0,.4);}
     .flagcard {text-align:center; padding:.8rem .2rem; border:1px solid #e5e7eb; border-radius:14px; background:#fff;
                font-weight:600; font-size:.82rem; margin-bottom:.4rem; min-height:104px;}
     .flagcard.sel {border:2px solid #1b3a6b; background:#eff6ff;}
@@ -743,9 +797,9 @@ st.markdown(
         .photo {max-height:190px;}
         .photo-cap {font-size:.9rem;}
         .ph-emoji {font-size:2rem;}
-        .flag.big {width:56px;}
+        .flag.big {width:90px !important; height:60px !important;}
         .flagcard {min-height:84px; font-size:.68rem; padding:.5rem .1rem;}
-        .flagcard .flag {width:36px;}
+        .flagcard .flag {width:42px !important; height:28px !important;}
         h2 {font-size:1.5rem !important;} h3 {font-size:1.2rem !important;}
         [data-testid="stHorizontalBlock"]:has(.m-grid2), [data-testid="stHorizontalBlock"]:has(.m-grid3),
         [data-testid="stHorizontalBlock"]:has(.m-grid4) {flex-wrap:wrap !important; gap:.5rem !important;}
@@ -840,7 +894,7 @@ def page_home():
     mark(cols[0], "grid2")
     for col, (icon, title, desc, target) in zip(cols, services):
         with col.container(border=True):
-            st.markdown(photo(f"service_{title.split('_')[0]}", 120, icon), unsafe_allow_html=True)
+            st.markdown(photo(f"service_{title.split('_')[0]}", 130, icon, art=svg_uri(service_svg(title.split("_")[0]))), unsafe_allow_html=True)
             st.markdown(f"**{t(title)}**")
             st.caption(t(desc))
             st.button(t("view_details"), key=f"svc_{title}", on_click=go, args=(target,))
@@ -1006,7 +1060,7 @@ def page_travel():
     mark(cols[0], "grid2")
     for col, (icon, key) in zip(cols, items):
         with col.container(border=True):
-            st.markdown(photo(f"travel_{key}", 110, icon), unsafe_allow_html=True)
+            st.markdown(photo(f"travel_{key}", 130, icon, art=svg_uri(service_svg(TRAVEL_ART[key]))), unsafe_allow_html=True)
             st.markdown(f"**{t(key)}**")
 
     st.write("")
