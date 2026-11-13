@@ -2,6 +2,10 @@ import base64
 import hashlib
 import io
 import re
+import smtplib
+import zipfile
+from datetime import datetime
+from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import quote
 
@@ -245,6 +249,33 @@ TEXT = {
     "legal": ("© 2026 Hanna Edu. All rights reserved. Visa decisions are made by the relevant authorities; consultation does not guarantee approval.",
               "© 2026 Hanna Edu. Бүх эрх хуулиар хамгаалагдсан. Визний шийдвэрийг эрх бүхий байгууллага гаргана.",
               "© 2026 Hanna Edu. 모든 권리 보유. 비자 결정은 관계 당국에서 내립니다."),
+
+    "canada_form": ("Canada Visa Form", "КАНАДЫН ВИЗНЫ АНКЕТ", "캐나다 비자 신청서"),
+    "cvf_sub": ("Answer the 30 questions and upload your documents. Our team will review your application.",
+                "30 асуултад үнэн зөв хариулж, холбогдох бичиг баримтаа хавсаргана уу. Манай баг таны анкетыг хянан үзнэ.",
+                "30개 질문에 정확히 답변하고 관련 서류를 업로드해 주세요. 저희 팀이 검토합니다."),
+    "cvf_docs": ("Upload related documents", "Холбогдох бичиг баримтаа хуулах", "관련 서류 업로드"),
+    "cvf_docs_hint": ("PDF, JPG or PNG. Keep the total under 20 MB.",
+                      "PDF, JPG эсвэл PNG. Нийт хэмжээ 20 MB-аас хэтрэхгүй байх.",
+                      "PDF, JPG, PNG 형식. 총 용량 20MB 이하."),
+    "cvf_consent": ("I confirm the information is true and agree that Hanna Edu may use it to prepare my application.",
+                    "Миний оруулсан мэдээлэл үнэн зөв бөгөөд Hanna Edu анкет бэлтгэхэд ашиглахыг зөвшөөрч байна.",
+                    "입력한 정보가 사실이며 Hanna Edu가 신청 준비에 사용하는 것에 동의합니다."),
+    "cvf_submit": ("Submit Application", "Анкет илгээх", "신청서 제출"),
+    "cvf_required": ("Please fill in questions 1, 2, 3, 6 and 7 and confirm the consent box.",
+                     "1, 2, 3, 6, 7-р асуултыг бөглөж, зөвшөөрлийн нүдийг чагтална уу.",
+                     "1, 2, 3, 6, 7번 질문을 작성하고 동의란에 체크해 주세요."),
+    "cvf_sent": ("Your application was sent to our team. Thank you!",
+                 "Таны анкет манай багт амжилттай илгээгдлээ. Баярлалаа!",
+                 "신청서가 저희 팀에 전송되었습니다. 감사합니다!"),
+    "cvf_manual": ("Your application is ready, but automatic sending is not set up. Download the files below and email them to us.",
+                   "Анкет бэлэн боллоо, гэвч автоматаар илгээх тохиргоо хийгдээгүй байна. Доорх файлуудыг татаж аваад бидэнд и-мэйлээр илгээнэ үү.",
+                   "신청서가 준비되었습니다. 자동 전송이 설정되지 않아 아래 파일을 다운로드하여 이메일로 보내주세요."),
+    "cvf_download_txt": ("Download answers (.txt)", "Хариултууд татах (.txt)", "답변 다운로드 (.txt)"),
+    "cvf_download_zip": ("Download documents (.zip)", "Бичиг баримт татах (.zip)", "서류 다운로드 (.zip)"),
+    "cvf_private": ("Your information is used only to prepare your application.",
+                    "Таны мэдээлэл зөвхөн анкет бэлтгэхэд ашиглагдана.",
+                    "입력하신 정보는 신청 준비에만 사용됩니다."),
 }
 
 # School names remain official. Descriptions and program labels are translated.
@@ -387,7 +418,7 @@ VISA_DESTINATIONS = ["United States", "Canada", "Australia", "United Kingdom", "
 VISA_TYPES = ["visitor_visa", "student_visa", "documents", "general", "not_sure"]
 TRAVEL_PURPOSES = ["tourism", "family", "moving_abroad", "education"]
 SCHOOL_TYPE_KEYS = {"University": "university", "College": "college", "Language School": "language_school"}
-PAGES = ["home", "education", "visa", "travel", "contact"]
+PAGES = ["home", "education", "visa", "travel", "canada_form", "contact"]
 
 # ---------------------------------------------------------------------------
 # Image system
@@ -964,6 +995,8 @@ def page_visa():
         },
         type="primary",
     )
+    if dest == "Canada":
+        st.button(f"📝 {t('canada_form')}", key="visa_to_form", on_click=go, args=("canada_form",))
 
 
 def page_travel():
@@ -1048,6 +1081,215 @@ def page_contact():
     st.caption(f"{t('contact_label')}: {CONTACT_EMAIL} · {WEBSITE}")
 
 
+# ---------------------------------------------------------------------------
+# Canada visa application form (30 questions + documents)
+# ---------------------------------------------------------------------------
+YES_NO = ["Тийм", "Үгүй"]
+# (number, label, kind, half-width)  |  ("sec", title)
+CV_QUESTIONS = [
+    ("sec", "Хувийн мэдээлэл"),
+    (1, "Овог нэр", "text", True),
+    (2, "Регистрийн дугаар", "text", True),
+    (3, "Паспортын дугаар", "text", True),
+    (4, "Гэрийн хаяг", "text", True),
+    (5, "Шуудангийн дугаар (гадаадад байгаа бол)", "text", True),
+    (6, "И-мэйл хаяг", "text", True),
+    (7, "Утасны дугаар", "text", True),
+    (20, "Төрсөн газар (сум, дүүрэг)", "text", True),
+    ("sec", "Эцэг эх"),
+    (8, "Эцгийн овог нэр", "text", True),
+    (9, "Эцгийн төрсөн он сар өдөр", "date", True),
+    (10, "Эхийн овог нэр", "text", True),
+    (11, "Эхийн төрсөн он сар өдөр", "date", True),
+    ("sec", "Ажил, боловсрол"),
+    (12, "Ажил эрхэлж / суралцаж байгаа эсэх", "yesno", False),
+    (13, "Хэрэв тийм бол байгууллагын нэр болон утас / сургуулийн хаягийг бичнэ үү", "area", False),
+    (14, "Боловсрол (Education) — Сургуулийн нэр: хамгийн сүүлд төгссөн сургууль (албан ёсны нэрийг бичнэ)", "text", False),
+    (15, "Мэргэжил / Суралцсан чиглэл: төгссөн мэргэжил", "text", False),
+    (16, "Суралцсан хугацаа: элсэн орсон огноо → төгссөн огноо", "period", False),
+    (17, "Ажил эрхлэлт, одоогийн байдал: ажилтай бол албан тушаал, байгууллагын нэр, ажилд орсон он сар өдөр, хугацаа", "area", False),
+    ("sec", "Визний түүх"),
+    (18, "Өмнө Америкийн визэнд орж байсан эсэх", "yesno", False),
+    (19, "Өмнө нь виз хүсэхэд татгалзсан эсэх, эсвэл өөр улсад нэвтрэхийг хориглогдож байсан уу?", "yesno_detail", False),
+    ("sec", "Гадаадад амьдарсан байдал"),
+    (21, "Өнгөрсөн 5 жил гадаадад амьдарсан эсэх", "yesno", False),
+    (22, "Хэрэв тийм бол:", "note", False),
+    (23, "Улсын нэр + амьдарсан хугацаа (он, сар)", "area", False),
+    ("sec", "Гэр бүлийн мэдээлэл"),
+    (24, "Гэр бүлийн мэдээлэл: овог нэр, төрсөн он сар өдөр. (Хэрэв хүүхэдтэй бол хүүхдийн овог нэр, төрсөн он сар өдөр)", "area", False),
+    (25, "Эцэг эхийн нэр болон төрсөн он сар өдөр", "area", False),
+    ("sec", "Канад аялал"),
+    (26, "Өмнө нь Канадад очиж байсан уу?", "yesno", False),
+    (27, "Канадын визний хурууны хээг өмнө нь өгч байсан эсэх", "yesno", False),
+    (28, "Аяллын зорилго", "text", True),
+    (29, "Канад руу хэзээ явна гэж төлөвлөж байна вэ?", "text", True),
+    (30, "Хэд хоног аялах?", "days", True),
+]
+DATE_HINT = "ЖЖЖЖ-СС-ӨӨ"
+
+CV_DOCS = [
+    ("passport", "Паспортын хуулбар"),
+    ("id", "Иргэний үнэмлэхний хуулбар"),
+    ("photo", "Цээж зураг (визний шаардлагад нийцсэн)"),
+    ("bank", "Банкны хуулга"),
+    ("work", "Ажил / сургуулийн тодорхойлолт"),
+    ("civil", "Гэрлэлтийн / төрсний гэрчилгээ"),
+    ("other", "Бусад бичиг баримт"),
+]
+MAX_EMAIL_BYTES = 20 * 1024 * 1024
+
+
+def render_field(box, q):
+    n, label, kind = q[0], q[1], q[2]
+    key, title = f"cv_q{n}", f"{n}. {label}"
+    if kind == "text":
+        return box.text_input(title, key=key)
+    if kind == "date":
+        return box.text_input(title, key=key, placeholder=DATE_HINT)
+    if kind == "area":
+        return box.text_area(title, key=key, height=100)
+    if kind == "days":
+        return box.number_input(title, key=key, min_value=0, max_value=365, step=1, value=0)
+    if kind == "yesno":
+        return box.radio(title, YES_NO, key=key, horizontal=True, index=None) or ""
+    if kind == "yesno_detail":
+        choice = box.radio(title, YES_NO, key=key, horizontal=True, index=None) or ""
+        detail = box.text_area("Тайлбар (хэрэв тийм бол)", key=f"{key}_detail", height=90)
+        return f"{choice} | {detail.strip()}" if detail.strip() else choice
+    if kind == "period":
+        box.markdown(f"**{title}**")
+        a, b = box.columns(2)
+        start = a.text_input("Элсэн орсон огноо", key=f"{key}_start", placeholder=DATE_HINT)
+        end = b.text_input("Төгссөн огноо", key=f"{key}_end", placeholder=DATE_HINT)
+        return f"{start} → {end}" if (start or end) else ""
+    if kind == "note":
+        box.markdown(f"**{title}**")
+        return ""
+    return ""
+
+
+def render_questions():
+    answers, buf = {}, []
+
+    def flush():
+        if buf:
+            for col, q in zip(st.columns(2), buf):
+                answers[q[0]] = render_field(col, q)
+            buf.clear()
+
+    for q in CV_QUESTIONS:
+        if q[0] == "sec":
+            flush()
+            st.markdown(f"#### {q[1]}")
+        elif q[3]:
+            buf.append(q)
+            if len(buf) == 2:
+                flush()
+        else:
+            flush()
+            answers[q[0]] = render_field(st, q)
+    flush()
+    return answers
+
+
+def build_summary(answers, files):
+    labels = {q[0]: q[1] for q in CV_QUESTIONS if q[0] != "sec"}
+    lines = ["КАНАДЫН ВИЗНЫ АНКЕТ", f"Огноо: {datetime.now():%Y-%m-%d %H:%M}", ""]
+    for n in range(1, 31):
+        value = answers.get(n, "")
+        lines.append(f"{n}. {labels[n]}\n   {value if value not in ('', 0) else '-'}")
+    lines += ["", "Хавсаргасан бичиг баримт:"]
+    lines += [f"- {cat}: {name}" for cat, name, _, _ in files] or ["- (байхгүй)"]
+    return "\n".join(lines)
+
+
+def build_zip(files):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for i, (cat, name, _, data) in enumerate(files, 1):
+            zf.writestr(f"{i:02d}_{cat}_{name}", data)
+    return buf.getvalue()
+
+
+def smtp_config():
+    try:
+        return dict(st.secrets["smtp"])
+    except Exception:
+        return None
+
+
+def send_application(subject, summary, files):
+    """Email the answers + documents. Needs [smtp] in .streamlit/secrets.toml."""
+    cfg = smtp_config()
+    if not cfg:
+        return False
+    if sum(len(f[3]) for f in files) > MAX_EMAIL_BYTES:
+        return False
+    try:
+        msg = EmailMessage()
+        msg["Subject"], msg["From"] = subject, cfg["user"]
+        msg["To"] = cfg.get("to", CONTACT_EMAIL)
+        msg.set_content(summary)
+        for i, (cat, name, mime, data) in enumerate(files, 1):
+            main, _, sub = (mime or "application/octet-stream").partition("/")
+            msg.add_attachment(data, maintype=main, subtype=sub or "octet-stream", filename=f"{i:02d}_{cat}_{name}")
+        with smtplib.SMTP_SSL(cfg.get("host", "smtp.gmail.com"), int(cfg.get("port", 465))) as server:
+            server.login(cfg["user"], cfg["password"])
+            server.send_message(msg)
+        return True
+    except Exception:
+        return False
+
+
+def page_canada_form():
+    hero("canada_form", "cvf_sub", bg_key="hero_visa")
+    st.caption(f"🔒 {t('cvf_private')}")
+
+    with st.form("cv_form"):
+        answers = render_questions()
+        st.markdown("---")
+        st.subheader(t("cvf_docs"))
+        st.caption(t("cvf_docs_hint"))
+        uploads = []
+        for col, (cat, label) in zip(st.columns(2) * 4, CV_DOCS):
+            uploads.append((label, col.file_uploader(
+                label, type=["pdf", "jpg", "jpeg", "png"], accept_multiple_files=True, key=f"cv_doc_{cat}")))
+        consent = st.checkbox(t("cvf_consent"), key="cv_consent")
+        submitted = st.form_submit_button(t("cvf_submit"), type="primary")
+
+    if submitted:
+        email = str(answers.get(6, "")).strip()
+        if not all(str(answers.get(n, "")).strip() for n in (1, 2, 3, 6, 7)) or not consent:
+            st.session_state["cv_result"] = None
+            st.error(t("cvf_required"))
+        elif not EMAIL_RE.match(email):
+            st.session_state["cv_result"] = None
+            st.error(t("email_error"))
+        else:
+            files = [(label, f.name, f.type, f.getvalue()) for label, group in uploads for f in (group or [])]
+            summary = build_summary(answers, files)
+            sent = send_application(f"Канадын визний анкет - {answers[1]}", summary, files)
+            st.session_state["cv_result"] = {
+                "sent": sent, "summary": summary,
+                "zip": build_zip(files) if files else None,
+                "stamp": datetime.now().strftime("%Y%m%d-%H%M%S"),
+            }
+
+    result = st.session_state.get("cv_result")
+    if result:
+        if result["sent"]:
+            st.success(t("cvf_sent"))
+        else:
+            st.warning(t("cvf_manual"))
+            c1, c2, _ = st.columns([1, 1, 2])
+            c1.download_button(t("cvf_download_txt"), result["summary"].encode("utf-8"),
+                               file_name=f"canada-visa-{result['stamp']}.txt", key="cv_dl_txt")
+            if result["zip"]:
+                c2.download_button(t("cvf_download_zip"), result["zip"],
+                                   file_name=f"documents-{result['stamp']}.zip", key="cv_dl_zip")
+            st.caption(f"✉️ {CONTACT_EMAIL}")
+
+
 def render_footer():
     st.divider()
     c1, c2, c3 = st.columns([2, 1, 1.5])
@@ -1072,6 +1314,7 @@ render_header()
     "education": page_education,
     "visa": page_visa,
     "travel": page_travel,
+    "canada_form": page_canada_form,
     "contact": page_contact,
 }.get(st.session_state["page"], page_home)()
 
