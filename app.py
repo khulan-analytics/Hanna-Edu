@@ -1,12 +1,16 @@
 import base64
 import hashlib
 import io
+import json
 import re
 import smtplib
 import zipfile
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
 
 import streamlit as st
@@ -665,7 +669,61 @@ def service_svg(kind):
     return head + art + "</svg>"
 
 
+# Wikipedia page that holds each school's real photos (looked up live, free-licensed Wikimedia images).
+SCHOOL_WIKI = {
+    "University at Buffalo": "University at Buffalo",
+    "University of Hawaii": "University of Hawaii",
+    "Midwestern Career College": "Midwestern Career College",
+    "Academia Language School": "Academia Language School",
+    "Mentora College": "Bay Atlantic University",
+    "Durham College": "Durham College",
+    "Canada Christian College": "Canada Christian College",
+}
+_BAD_WORDS = ("logo", "seal", "flag", "map", "icon", "wordmark", "symbol", "signature", "crest", "coat",
+              "commons", "wiki", "edit-", "question", "ambox", "portrait", "diagram", "chart")
+
+
+def _wiki_api(params):
+    url = "https://en.wikipedia.org/w/api.php?" + urllib.parse.urlencode({**params, "format": "json", "formatversion": 2})
+    req = urllib.request.Request(url, headers={"User-Agent": "HannaEduApp/1.0 (mongolianhannaedu@gmail.com)"})
+    with urllib.request.urlopen(req, timeout=6) as resp:
+        return json.load(resp)
+
+
+def _wiki_photo(title):
+    """Return the URL of a landscape campus photo from a Wikipedia article, or None."""
+    try:
+        data = _wiki_api({"action": "query", "titles": title, "prop": "images", "imlimit": "60", "redirects": 1})
+        files = [i["title"] for pg in data["query"]["pages"] for i in pg.get("images", [])]
+        candidates = [f for f in files if f.lower().endswith((".jpg", ".jpeg"))
+                      and not any(b in f.lower() for b in _BAD_WORDS)]
+        for name in candidates[:4]:
+            info = _wiki_api({"action": "query", "titles": name, "prop": "imageinfo",
+                              "iiprop": "url|size", "iiurlwidth": 1200})["query"]["pages"][0]["imageinfo"][0]
+            if info.get("width", 0) >= 800 and info["width"] >= info.get("height", 0):
+                return info.get("thumburl") or info["url"]
+    except Exception:
+        pass
+    return None
+
+
+@st.cache_data(show_spinner=False, ttl=60 * 60 * 24)
+def fetch_school_photos(pairs):
+    """pairs: tuple of (school name, wikipedia title) -> {school name: photo url or None}."""
+    with ThreadPoolExecutor(max_workers=7) as pool:
+        urls = list(pool.map(lambda pair: _wiki_photo(pair[1]), pairs))
+    return {name: url for (name, _), url in zip(pairs, urls)}
+
+
 def school_art(school):
+    """Real photo (assets > Wikipedia) > photo of a similar school > drawn campus."""
+    photos = fetch_school_photos(tuple(SCHOOL_WIKI.items()))
+    url = photos.get(school["name"])
+    if not url:
+        same_type = [photos.get(o["name"]) for o in SCHOOLS if o["type"] == school["type"]]
+        url = next((u for u in same_type if u), None) or next((u for u in photos.values() if u), None)
+    if url:
+        return url
     variant = int(hashlib.md5(school["name"].encode()).hexdigest(), 16) % 3
     return svg_uri(campus_svg(school["type"], variant))
 
@@ -674,6 +732,7 @@ def photo(key, height=180, emoji="🌍", label="", art=None, flag=None):
     """Uniformly cropped tile: real photo > illustration (art) > navy gradient with flag/emoji."""
     src = image_source(key) or art
     if src:
+        src = src.replace("'", "%27")
         style, inner = f"background-image:url('{src}');", ""
     else:
         idx = int(hashlib.md5(key.encode()).hexdigest(), 16) % len(GRADIENTS)
@@ -953,10 +1012,13 @@ def page_education():
 
     if school:
         st.button(f"← {t('back')}", key="school_back", on_click=select_school, args=(None,))
+        art = school_art(school)
         st.markdown(
-            photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"], art=school_art(school)),
+            photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"], art=art),
             unsafe_allow_html=True,
         )
+        if art.startswith("http"):
+            st.caption("Photo: Wikimedia Commons (illustrative campus photo)")
         st.markdown(f"## {school['name']}")
         st.caption(f"{school['city']} · {destination_name(school['country'])} · {school_type_label(school['type'])}")
         st.write(pick(school["description"]))
