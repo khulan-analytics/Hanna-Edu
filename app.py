@@ -452,6 +452,11 @@ def image_source(key):
     return None
 
 
+def mark(col, name):
+    """Invisible marker so CSS can lay this row of columns out as a 2/3/4-per-row grid on phones."""
+    col.markdown(f'<span class="m m-{name}"></span>', unsafe_allow_html=True)
+
+
 def svg_uri(svg):
     return "data:image/svg+xml;utf8," + quote(svg)
 
@@ -682,8 +687,6 @@ st.markdown(
             display:flex; align-items:center; gap:.8rem; line-height:1;}
     .brand-mark {background:linear-gradient(135deg,#1b3a6b,#2f63c8); color:#fff; border-radius:12px; width:50px; height:50px;
                  display:inline-flex; align-items:center; justify-content:center; font-size:1.7rem; letter-spacing:0;}
-    @media (max-width:640px) {.brand {font-size:1.5rem;} .brand-mark {width:36px; height:36px; font-size:1.2rem;}
-                              .hero-art {display:none;}}
     .hero-flex {display:flex; align-items:center; justify-content:space-between; gap:2rem;}
     .hero-art {width:440px; max-width:40%; flex-shrink:0;}
     .flag {border-radius:3px; box-shadow:0 1px 4px rgba(0,0,0,.35); vertical-align:middle; margin-right:.35rem;}
@@ -695,6 +698,37 @@ st.markdown(
     [data-testid="stBaseButton-primary"], [data-testid="stBaseLinkButton-primary"] {
         background:#1b3a6b !important; border-color:#1b3a6b !important; color:#fff !important;}
     [data-testid="stBaseButton-primary"]:hover {background:#2f63c8 !important; border-color:#2f63c8 !important;}
+    .element-container:has(.m), [data-testid="stElementContainer"]:has(.m) {display:none;}
+    @media (max-width:768px) {
+        .block-container {padding:1rem .9rem 2rem !important; width:100% !important; max-width:100% !important;}
+        .stApp {font-size:1rem;}
+        .brand {font-size:1.5rem; gap:.6rem;}
+        .brand-mark {width:38px; height:38px; font-size:1.25rem; border-radius:10px;}
+        .hero {padding:1.8rem 1.2rem; border-radius:16px;}
+        .hero h1 {font-size:1.75rem;}
+        .hero p {font-size:1rem;}
+        .hero-flex {flex-direction:column; align-items:flex-start; gap:1rem;}
+        .hero-art {width:70%; max-width:260px; align-self:center;}
+        .photo {max-height:190px;}
+        .photo-cap {font-size:.9rem;}
+        .ph-emoji {font-size:2rem;}
+        .flag.big {width:56px;}
+        .flagcard {min-height:84px; font-size:.68rem; padding:.5rem .1rem;}
+        .flagcard .flag {width:36px;}
+        h2 {font-size:1.5rem !important;} h3 {font-size:1.2rem !important;}
+        [data-testid="stHorizontalBlock"]:has(.m-grid2), [data-testid="stHorizontalBlock"]:has(.m-grid3),
+        [data-testid="stHorizontalBlock"]:has(.m-grid4) {flex-wrap:wrap !important; gap:.5rem !important;}
+        [data-testid="stHorizontalBlock"]:has(.m-grid2) > [data-testid="stColumn"],
+        [data-testid="stHorizontalBlock"]:has(.m-grid2) > div[data-testid="column"] {
+            flex:1 1 calc(50% - .5rem) !important; min-width:calc(50% - .5rem) !important; width:calc(50% - .5rem) !important;}
+        [data-testid="stHorizontalBlock"]:has(.m-grid3) > [data-testid="stColumn"],
+        [data-testid="stHorizontalBlock"]:has(.m-grid3) > div[data-testid="column"] {
+            flex:1 1 calc(33.333% - .5rem) !important; min-width:calc(33.333% - .5rem) !important; width:calc(33.333% - .5rem) !important;}
+        [data-testid="stHorizontalBlock"]:has(.m-grid4) > [data-testid="stColumn"],
+        [data-testid="stHorizontalBlock"]:has(.m-grid4) > div[data-testid="column"] {
+            flex:1 1 calc(25% - .5rem) !important; min-width:calc(25% - .5rem) !important; width:calc(25% - .5rem) !important;}
+        [data-testid="stHorizontalBlock"]:has(.m-grid3) button {font-size:.75rem; padding:.25rem .1rem; min-height:2.3rem;}
+    }
     .office-img {width:100%; border-radius:18px; box-shadow:0 8px 24px rgba(27,58,107,.18);}
     .photo {position:relative; width:100%; border-radius:14px; background-size:cover; background-position:center;
             display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:.6rem;
@@ -736,6 +770,7 @@ def render_header():
     left.markdown('<div class="brand"><span class="brand-mark">H</span>HANNA EDU</div>', unsafe_allow_html=True)
     right.selectbox(t("language"), LANGUAGES, key="language", label_visibility="collapsed")
     cols = st.columns(len(PAGES))
+    mark(cols[0], "grid3")
     for col, page in zip(cols, PAGES):
         col.button(
             t(page), key=f"nav_{page}", on_click=go, args=(page,), use_container_width=True,
@@ -771,6 +806,7 @@ def page_home():
         ("🗣️", "language_service", "language_desc", "contact"),
     ]
     cols = st.columns(len(services))
+    mark(cols[0], "grid2")
     for col, (icon, title, desc, target) in zip(cols, services):
         with col.container(border=True):
             st.markdown(photo(f"service_{title.split('_')[0]}", 120, icon), unsafe_allow_html=True)
@@ -785,6 +821,7 @@ def page_home():
     st.write("")
     section_header("destinations", "destinations_title")
     tiles = st.columns(4)
+    mark(tiles[0], "grid2")
     for i, d in enumerate(DESTINATIONS[:-1]):
         with tiles[i % 4]:
             st.markdown(country_photo(d, 160), unsafe_allow_html=True)
@@ -802,6 +839,7 @@ def page_home():
     st.write("")
     st.markdown(f'<div class="label">{t("how")}</div>', unsafe_allow_html=True)
     cols = st.columns(4)
+    mark(cols[0], "grid2")
     for col, n in zip(cols, (1, 2, 3, 4)):
         with col.container(border=True):
             st.markdown(f"**{n}. {t(f'step{n}')}**")
@@ -899,6 +937,7 @@ def page_visa():
     st.session_state.setdefault("visa_dest_sel", "United States")
     dest = st.session_state["visa_dest_sel"]
     cols = st.columns(len(VISA_DESTINATIONS))
+    mark(cols[0], "grid4")
     for col, d in zip(cols, VISA_DESTINATIONS):
         selected = d == dest
         with col:
@@ -931,6 +970,7 @@ def page_travel():
     hero("travel_head", "travel_sub", bg_key="hero_travel")
     items = [("✈️", "flight"), ("🏨", "hotel"), ("🧳", "travel_prep"), ("📦", "moving"), ("🏠", "settlement")]
     cols = st.columns(len(items))
+    mark(cols[0], "grid2")
     for col, (icon, key) in zip(cols, items):
         with col.container(border=True):
             st.markdown(photo(f"travel_{key}", 110, icon), unsafe_allow_html=True)
