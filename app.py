@@ -280,6 +280,9 @@ TEXT = {
     "cvf_private": ("Your information is used only to prepare your application.",
                     "Таны мэдээлэл зөвхөн анкет бэлтгэхэд ашиглагдана.",
                     "입력하신 정보는 신청 준비에만 사용됩니다."),
+    "photo_credit": ("Photo: Wikimedia Commons (illustrative campus photo)",
+                     "Зураг: Wikimedia Commons (сургуулийн орчмын жишээ зураг)",
+                     "사진: Wikimedia Commons (캠퍼스 참고 사진)"),
 }
 
 # School names remain official. Descriptions and program labels are translated.
@@ -760,7 +763,7 @@ def hero_bg(key):
 # ---------------------------------------------------------------------------
 # Session state + translation helpers
 # ---------------------------------------------------------------------------
-st.session_state.setdefault("language", "English")
+st.session_state.setdefault("language", "Монгол")   
 st.session_state.setdefault("page", "home")
 st.session_state.setdefault("selected_school", None)
 st.session_state.setdefault("c_dest", "United States")
@@ -770,9 +773,8 @@ st.session_state.setdefault("mailto", None)
 
 
 def lang_index():
-    lang = st.session_state.get("language", "English")
-    return LANGUAGES.index(lang) if lang in LANGUAGES else 0
-
+    lang = st.session_state.get("language", "Монгол")   # was "English"
+    return LANGUAGES.index(lang) if lang in LANGUAGES else 1   # 1 = Монгол
 
 def pick(options, fallback=""):
     """Pick the current-language entry from an (en, mn, ko) tuple."""
@@ -1017,8 +1019,8 @@ def page_education():
             photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"], art=art),
             unsafe_allow_html=True,
         )
-        if art.startswith("http"):
-            st.caption("Photo: Wikimedia Commons (illustrative campus photo)")
+                if art.startswith("http"):
+            st.caption(t("photo_credit"))
         st.markdown(f"## {school['name']}")
         st.caption(f"{school['city']} · {destination_name(school['country'])} · {school_type_label(school['type'])}")
         st.write(pick(school["description"]))
