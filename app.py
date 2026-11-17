@@ -179,6 +179,9 @@ TEXT = {
     "view_details": ("View Details", "Дэлгэрэнгүй үзэх", "상세 정보 보기"),
     "visit_school": ("Visit Official Website", "Албан ёсны вэбсайт үзэх", "공식 웹사이트 방문"),
     "back": ("Back to all schools", "Бүх сургууль руу буцах", "전체 학교 목록으로 돌아가기"),
+    "photo_credit": ("Photo: Wikimedia Commons (illustrative campus photo)",
+                     "Зураг: Wikimedia Commons (сургуулийн орчмын жишээ зураг)",
+                     "사진: Wikimedia Commons (캠퍼스 참고 사진)"),
 
     "visa_head": ("Your visa journey starts here.",
                   "Таны визний аялал эндээс эхэлнэ.",
@@ -280,9 +283,6 @@ TEXT = {
     "cvf_private": ("Your information is used only to prepare your application.",
                     "Таны мэдээлэл зөвхөн анкет бэлтгэхэд ашиглагдана.",
                     "입력하신 정보는 신청 준비에만 사용됩니다."),
-    "photo_credit": ("Photo: Wikimedia Commons (illustrative campus photo)",
-                     "Зураг: Wikimedia Commons (сургуулийн орчмын жишээ зураг)",
-                     "사진: Wikimedia Commons (캠퍼스 참고 사진)"),
 }
 
 # School names remain official. Descriptions and program labels are translated.
@@ -763,7 +763,7 @@ def hero_bg(key):
 # ---------------------------------------------------------------------------
 # Session state + translation helpers
 # ---------------------------------------------------------------------------
-st.session_state.setdefault("language", "Монгол")   
+st.session_state.setdefault("language", "Монгол")
 st.session_state.setdefault("page", "home")
 st.session_state.setdefault("selected_school", None)
 st.session_state.setdefault("c_dest", "United States")
@@ -773,8 +773,9 @@ st.session_state.setdefault("mailto", None)
 
 
 def lang_index():
-    lang = st.session_state.get("language", "Монгол")   # was "English"
-    return LANGUAGES.index(lang) if lang in LANGUAGES else 1   # 1 = Монгол
+    lang = st.session_state.get("language", "Монгол")
+    return LANGUAGES.index(lang) if lang in LANGUAGES else 1
+
 
 def pick(options, fallback=""):
     """Pick the current-language entry from an (en, mn, ko) tuple."""
@@ -914,7 +915,7 @@ def hero(head_key, sub_key, label_key=None, bg_key=None):
 def render_header():
     left, right = st.columns([4, 1.3])
     left.markdown('<div class="brand"><span class="brand-mark">H</span>HANNA EDU</div>', unsafe_allow_html=True)
-    right.selectbox(t("language"), LANGUAGES, key="language", label_visibility="collapsed")
+    right.selectbox(t("language"), ["Монгол", "English", "한국어"], key="language", label_visibility="collapsed")
     cols = st.columns(len(PAGES))
     mark(cols[0], "grid3")
     for col, page in zip(cols, PAGES):
@@ -1019,7 +1020,7 @@ def page_education():
             photo(f"school_{slugify(school['name'])}", 320, SCHOOL_EMOJI.get(school["type"], "🎓"), school["name"], art=art),
             unsafe_allow_html=True,
         )
-                if art.startswith("http"):
+        if art.startswith("http"):
             st.caption(t("photo_credit"))
         st.markdown(f"## {school['name']}")
         st.caption(f"{school['city']} · {destination_name(school['country'])} · {school_type_label(school['type'])}")
